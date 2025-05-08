@@ -164,12 +164,18 @@ class MainFrame(tk.Frame):
 
     def put_main_frames(self, mainapp):
         #self.frame_start_from = StartFromFrame(self, mainapp)
-        self.frame_info = InfoFrame(self, mainapp)
+        self.frame_info_rma = InfoFrame(self, mainapp)
+        self.frame_info_pro = InfoFrame(self, mainapp)
         #self.frame_barcodes = BarcodesFrame(self, mainapp)
 
         #self.frame_start_from.grid(row=0, column=0, columnspan=2, sticky="news")
-        self.frame_info.grid(row=1, column=0, sticky="news", padx=2, pady=2)
-        #self.frame_barcodes.grid(row=1, column=1, sticky="news", padx=2, pady=2)
+        self.frame_info_rma.grid(row=1, column=0, sticky="news", padx=2, pady=2)
+        self.frame_info_rma.lab_type.configure(text='RMA')
+        self.frame_info_rma.lab_cats.configure(text='Categories: ')
+
+        self.frame_info_pro.grid(row=1, column=1, sticky="news", padx=2, pady=2)
+        self.frame_info_pro.lab_type.configure(text='Production')
+        self.frame_info_pro.lab_cats.configure(text='Categories: ')
 
     def put_widgets(self):
         pass
@@ -229,20 +235,22 @@ class InfoFrame(tk.Frame):
         self.mainapp = mainapp
 
     def put_widgets(self):
-        self.lab_act_package_txt = ttk.Label(self, text='Package:')
-        self.lab_act_package_val = ttk.Label(self, text='')
-        self.lab_sw_txt = ttk.Label(self, text='SW Ver.:')
-        self.lab_sw_val = ttk.Label(self, text='')
-        self.lab_flash_txt = ttk.Label(self, text='Flash Image:')
-        self.lab_flash_val = ttk.Label(self, text='')
+        self.lab_type = ttk.Label(self, text='', font=('', 11))
+        self.lab_dates = ttk.Label(self, text='')
+        self.lab_cats  = ttk.Label(self, text='')
+        self.var_cats = tk.StringVar()
+        self.cb_cats = ttk.Combobox(self, justify='center', width=20, textvariable=self.var_cats)
 
-        self.lab_act_package_txt.grid(row=0, column=0, sticky='w', padx=2, pady=2)
-        self.lab_act_package_val.grid(row=0, column=1, sticky='e', padx=2, pady=2)
-        self.lab_sw_txt.grid(row=1, column=0, sticky='w', padx=2, pady=2)
-        self.lab_sw_val.grid(row=1, column=1, sticky='e', padx=2, pady=2)
-        # self.lab_flash_txt.grid(row=2, column=0, sticky='w', padx=2, pady=2)
-        # self.lab_flash_val.grid(row=2, column=1, sticky='e', padx=2, pady=2)
+        self.lab_type.grid(row=0, column=0, sticky='w', padx=2, pady=2)
+        self.lab_dates.grid(row=1, column=0, sticky='w', padx=2, pady=2, columnspan=2)
+        self.lab_cats.grid(row=2, column=0, sticky='w', padx=2, pady=2)
+        self.cb_cats.grid(row=2, column=1, sticky='w', padx=2, pady=2)
 
+
+    def lab_type_fill(self,txt):
+        self.lab_type.configure(text=txt)
+    def lab_dates_fill(self,txt):
+        self.lab_dates.configure(text=txt)
 
 class StatusBarFrame(tk.Frame):
     '''Create the Status Bar Frame on base of tk.Frame'''
@@ -286,4 +294,38 @@ class StatusBarFrame(tk.Frame):
 
 
 app = App()
+
+from datetime import date
+from sql_db_rw import SqliteDB
+from gen_lib import lib_gen
+gen = lib_gen.FormatDates()
+date_from = gen.format_date_to_uso('01/01/2020')
+#date_upto = date.today().strftime('%d/%m/%Y')
+date_upto = gen.format_date_to_uso(date.today().strftime('%d/%m/%Y'))
+sql = SqliteDB()
+for tbl_name, lab_name in zip(["RMA", "Prod"], ['rma', 'pro']):
+    print(f'df_{lab_name} tbl_{tbl_name}')
+
+df_rma = sql.read_table('RMA', date_from, date_upto)
+all_dates = sorted({row['open_date'] for row in df_rma})
+date_from = min(all_dates).split(' ')[0]
+date_to = max(all_dates).split(' ')[0]
+print(len(df_rma), date_from, date_to)
+#print(sorted(df_rma[0].keys()))
+app.main_frame.frame_info_rma.lab_dates_fill(f"Data is available from {date_from} upto {date_to}")
+cats = sorted(df_rma[0].keys())
+app.main_frame.frame_info_rma.cb_cats.configure(values=cats)
+app.main_frame.frame_info_rma.var_cats.set(cats[0])
+
+df_pro = sql.read_table('Prod', date_from, date_upto)
+all_dates = sorted({row['open_date'] for row in df_pro})
+date_from = min(all_dates).split(' ')[0]
+date_to = max(all_dates).split(' ')[0]
+print(len(df_pro), date_from, date_to)
+app.status_bar_frame.status("")
+app.main_frame.frame_info_pro.lab_dates_fill(f"Data is available from {date_from} upto {date_to}")
+cats = sorted(df_pro[0].keys())
+app.main_frame.frame_info_pro.cb_cats.configure(values=cats)
+app.main_frame.frame_info_pro.var_cats.set(cats[0])
+app.status_bar_frame.status("")
 app.mainloop()

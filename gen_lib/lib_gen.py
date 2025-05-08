@@ -99,4 +99,15 @@ class Gen:
         #     print(f'returncode:<{process.returncode}>')
         subprocess.Popen([f'aplay /home/ilya/Wav/{sound}'], shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE, text=True)
-        
+
+class FormatDates:
+    def __init__(self):
+        pass
+
+    def format_date_to_uso(self, date):  # rom '15/06/2024' → '2024-06-15 2024-06-15 00:00:00.000000'
+        date_from_obj = datetime.strptime(date, '%d/%m/%Y')
+        return date_from_obj.strftime('%Y-%m-%d %H:%M:%S.%f')
+
+    def format_date_from_iso(self, date):  # from '2024-06-15' → '15/06/2024'
+        date_obj = datetime.strptime(date, '%Y-%m-%d')
+        return date_obj.strftime('%d/%m/%Y')

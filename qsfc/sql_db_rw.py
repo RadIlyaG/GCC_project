@@ -60,6 +60,12 @@ class SqliteDB:
         conn.close()
         return df
 
+    def retrive_min_max_dates(self, df):
+        all_dates = sorted({row['open_date'] for row in df})
+        date_from = min(all_dates).split(' ')[0]
+        date_to = max(all_dates).split(' ')[0]
+        return date_from, date_to
+
 if __name__ == '__main__':
     db = SqliteDB()
     df = db.read_table('RMA', '2024-04-05', '2025-04-12')
