@@ -10,7 +10,7 @@ import re
 import plotly.graph_objects as go
 import plotly.io as pio
 from collections import Counter, defaultdict
-from datetime import date, timedelta, datetime
+from datetime import datetime
 import sqlite3
 
 
@@ -75,7 +75,7 @@ class Qsfc:
         if res:
             self.url = url + partial_url
             res = self.get_data_cert(qry_type)
-            print(f'self.url:{self.url} res:{res}')
+            #print(f'type(res):{type(res)} res:{res}')
             return res
         else:
             return False, url
@@ -87,10 +87,10 @@ class DrawPlot:
 
     def parse_date_from_str_into_datetime(self):
         for row in self.data:
-            if isinstance(row['open_date'], str):
-                #print('1', row['open_date'], type(row['open_date']))
-                row['open_date'] = datetime.strptime(row['open_date'], self.strptime_format)
-                #print('2', row['open_date'], type(row['open_date']))
+            if isinstance(row['rma_open_date'], str):
+                #print('1', row['rma_open_date'], type(row['rma_open_date']))
+                row['rma_open_date'] = datetime.strptime(row['rma_open_date'], self.strptime_format)
+                #print('2', row['rma_open_date'], type(row['rma_open_date']))
 
     def by_day(self, data):
         self.data = data
@@ -98,10 +98,10 @@ class DrawPlot:
         self.parse_date_from_str_into_datetime()
 
         # for row in self.data:
-        #     print('1a',row['open_date'], type(row['open_date']))
-        #     row['open_date'] = datetime.strptime(row['open_date'], self.strptime_format)
-        #     print('2a',row['open_date'], type(row['open_date']))
-        by_day = Counter(row['open_date'].date() for row in self.data)
+        #     print('1a',row['rma_open_date'], type(row['rma_open_date']))
+        #     row['rma_open_date'] = datetime.strptime(row['rma_open_date'], self.strptime_format)
+        #     print('2a',row['rma_open_date'], type(row['rma_open_date']))
+        by_day = Counter(row['rma_open_date'].date() for row in self.data)
 
         # Convert to sorted lists for graph
         dates = sorted(by_day.keys())
@@ -132,7 +132,7 @@ class DrawPlot:
     ##  tit 'RMAs by customer'
     ##  xaxis_tit 'Quantity'
     ##  yaxis_tit 'Customer'
-    def by_string(self, data, field_str, tit, xaxis_tit, yaxis_tit, **kwargs):
+    def by_string(self, data, field_str, tit, xaxis_tit, yaxis_tit):
         self.data = data
         # count how manu times each name is appearing
         by_field_str = Counter(row[field_str] for row in self.data)
@@ -142,18 +142,18 @@ class DrawPlot:
         counts = [x[1] for x in sorted_field_str_asc]
 
         # dates_only = [
-        #     datetime.strptime(row['open_date'], '%Y-%m-%d %H:%M:%S.%f').date()
+        #     datetime.strptime(row['rma_open_date'], '%Y-%m-%d %H:%M:%S.%f').date()
         #     for row in self.data
         # ]
         self.parse_date_from_str_into_datetime()
 
         dates_only = []
         for row in self.data:
-            dates_only.append(row['open_date'])
-            # if isinstance(row['open_date'], str):
-            #     dates_only.append(datetime.strptime(row['open_date'], self.strptime_format).date())
+            dates_only.append(row['rma_open_date'])
+            # if isinstance(row['rma_open_date'], str):
+            #     dates_only.append(datetime.strptime(row['rma_open_date'], self.strptime_format).date())
             # else:
-            #     dates_only.append(row['open_date'])
+            #     dates_only.append(row['rma_open_date'])
 
         date_from = min(dates_only)
         date_to = max(dates_only)
@@ -164,39 +164,29 @@ class DrawPlot:
         else:
             titl = f"{tit} {date_from.strftime(self.title_date_format)}"
 
-        figures = {}
-
-        fig_bar = go.Figure(go.Bar(x=counts, y=names, orientation='h'))
-        figures['bar'] = fig_bar
-        fig_bar.update_layout(title=titl,
+        fig = go.Figure(go.Bar(x=counts, y=names, orientation='h'))
+        fig.update_layout(title=titl,
                           xaxis_title=xaxis_tit,
                           yaxis_title=yaxis_tit)
         #fig.show()
-        pio.write_html(fig_bar, file=f'c:/temp/{tit}.bar.html', auto_open=True)
+        pio.write_html(fig, file=f'c:/temp/{tit}.bar.html', auto_open=True)
 
         customer_counts = Counter(row[field_str] for row in data)
-        fig_pie = go.Figure(data=[
+        fig = go.Figure(data=[
             go.Pie(labels=list(customer_counts.keys()), values=list(customer_counts.values()), hole=0)
         ])
-        figures['pie'] = fig_pie
 
-        fig_pie.update_layout(title=titl)
+        fig.update_layout(title=titl)
         #fig.show()
-        pio.write_html(fig_pie, file=f'c:/temp/{tit}.pie.html', auto_open=True)
-
-        if 'chart_type' in kwargs:
-            print (kwargs['chart_type'])
-            return figures[kwargs['chart_type']]
-        else:
-            return fig_bar
+        pio.write_html(fig, file=f'c:/temp/{tit}.pie.html', auto_open=True)
 
     def by_customer_day(self, data):
         self.data = data
         # Parse str into datetime
         self.parse_date_from_str_into_datetime()
         # for row in data:
-        #     if isinstance(row['open_date'], str):
-        #       row['open_date'] = datetime.strptime(row['open_date'], "%Y-%m-%d %H:%M:%S.%f")
+        #     if isinstance(row['rma_open_date'], str):
+        #       row['rma_open_date'] = datetime.strptime(row['rma_open_date'], "%Y-%m-%d %H:%M:%S.%f")
         #
         # Range for filter ??
         # date_from = datetime(2000, 2, 1)
@@ -204,7 +194,7 @@ class DrawPlot:
         # # Filter by date??
         # filtered_data = [
         #     row for row in data
-        #     if date_from.date() <= row['open_date'].date() <= date_to.date()
+        #     if date_from.date() <= row['rma_open_date'].date() <= date_to.date()
         # ]
 
         # Grouping: (date, name) → counter
@@ -212,7 +202,7 @@ class DrawPlot:
         # for row in filtered_data:
         #     pass
         for row in data:
-            date = row['open_date'].date()
+            date = row['rma_open_date'].date()
             name = row['customers_full_name']
             daily_counts[(date, name)] += 1
 
@@ -222,7 +212,7 @@ class DrawPlot:
             client_day_map[name][date] = count
 
         # Take dates(axis X)
-        all_dates = sorted({row['open_date'].date() for row in data})
+        all_dates = sorted({row['rma_open_date'].date() for row in data})
         date_from = min(all_dates)
         date_to = max(all_dates)
         # Build graph
@@ -306,7 +296,7 @@ def _DrawPlot_byCat(data):
 
     for row in data:
         # преобразуем дату
-        date_obj = datetime.strptime(row['open_date'], '%Y-%m-%d %H:%M:%S.%f')
+        date_obj = datetime.strptime(row['rma_open_date'], '%Y-%m-%d %H:%M:%S.%f')
         day_str = date_obj.date().isoformat()  # '2025-02-14'
 
         # Суммируем по нужному полю, например 'total'
@@ -378,19 +368,9 @@ if __name__ == '__main__':
     qsfc = Qsfc()
     qsfc.print_rtext = True
     res_list =[]
-    #list_of_dicts = qsfc.get_data_from_qsfc('RMA', "13/02/2025", "13/02/2025")
-    #for row in list_of_dicts:
-    #    if row['reporter_name'] == "":
-    #        row['reporter_name'] = "No name reported"
-            # print('2', row['open_date'], type(row['open_date']))
+    list_of_dicts = qsfc.get_data_from_qsfc('RMA', "13/02/2025", "13/02/2025")
     #print(list_of_dicts[0].keys())
-
-    #list_of_dicts = qsfc.get_data_from_qsfc('RMA', "13/01/2025", "13/02/2025")
-    date_from = str((date.today() - timedelta(days=30)).strftime("%d/%m/%Y"),)
-    today_date_string = date.today().strftime('%d/%m/%Y')
-    list_of_dicts = qsfc.get_data_from_qsfc('RMA', date_from, today_date_string)
-
-
+    #list_of_dicts = qsfc.get_data_from_qsfc('Prod', "13/01/2025", "13/02/2025")
     #print(f'len of list:{len(list_of_dicts)}')
     for dicti in list_of_dicts:
         print(dicti)
@@ -413,11 +393,10 @@ if __name__ == '__main__':
     #stri = input()
     #dp = DrawPlot()
     #dp.by_day(list_of_dicts)
-    dp = DrawPlot()
+    #dp = DrawPlot()
     #dp.by_string(list_of_dicts, 'reporter_name', 'RMAs by Reporter Name', 'Quantity', 'Reporter')
-    #dp.by_string(list_of_dicts, 'tested_catalog', 'Prod by tested_catalog', 'Quantity', 'cat')
-    #dp.by_string(list_of_dicts, 'tested_catalog', 'RMAs by catalog', 'Quantity', 'Catalog')
-    dp.by_string(list_of_dicts, 'customers_name', 'RMAs by customer', 'Quantity', 'Customer')
+    #dp.by_string(list_of_dicts, 'catalog', 'RMAs by catalog', 'Quantity', 'Catalog')
+    #dp.by_string(list_of_dicts, 'customers_full_name', 'RMAs by customer', 'Quantity', 'Customer')
     #dp.by_customer_day(list_of_dicts)
 
     # DrawPlot_byDay(list_of_dicts)
