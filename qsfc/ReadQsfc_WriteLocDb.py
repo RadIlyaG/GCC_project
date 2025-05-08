@@ -4,6 +4,8 @@ import urllib.parse
 import certifi
 import re
 import json
+from datetime import date, timedelta, datetime
+from sql_db_rw import SqliteDB
 
 
 class Qsfc:
@@ -71,3 +73,24 @@ class Qsfc:
             return res
         else:
             return False, url
+
+if __name__ == '__main__':
+
+    try:
+        with open("read_qsfc_config.json", 'r') as f:
+            config = json.load(f)
+    except Exception as exp:
+        print(f'Exception when read_qsfc_config.json: {exp}')
+    else:
+        qsfc = Qsfc()
+        qsfc.print_rtext = True
+        df = []
+        days_ago = config['days_ago']
+        date_from_string = str((date.today() - timedelta(days=days_ago)).strftime("%d/%m/%Y"), )
+        today_date_string = date.today().strftime('%d/%m/%Y')
+
+        for tbl_name in ['Prod', 'RMA']:
+            df = qsfc.get_data_from_qsfc(tbl_name, date_from_string, today_date_string)
+
+            tbl = SqliteDB()
+            tbl.fill_table(tbl_name, df)
