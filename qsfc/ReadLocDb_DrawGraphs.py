@@ -1,7 +1,7 @@
 from datetime import date, timedelta, datetime
 from sql_db_rw import SqliteDB
 from Graphs import DrawPlot
-from gen_lib import lib_gen
+from utils import lib_gen
 
 # def format_date_to_uso(date): #rom '15/06/2024' → '2024-06-15 2024-06-15 00:00:00.000000'
 #     date_from_obj = datetime.strptime(date, '%d/%m/%Y')

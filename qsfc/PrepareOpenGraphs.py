@@ -1,4 +1,9 @@
+"""source .venv/Scripts/activate"""
+
 import tkinter as tk
+
+#from tkinter import tkcalendar
+from tkcalendar import Calendar, DateEntry
 from tkinter import messagebox, ttk
 import re
 import os
@@ -10,8 +15,16 @@ from PIL import Image, ImageTk
 import sys
 import functools
 from functools import partial
-from gen_lib import lib_gen
-from gen_lib import lib_DialogBox as dbox
+from datetime import date, timedelta, datetime
+
+from Graphs import DrawPlot
+
+##sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'utils')))
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+from utils import lib_gen
+from utils import lib_DialogBox as dbox
 
 
 class App(tk.Tk):
@@ -48,6 +61,7 @@ class App(tk.Tk):
         self.gaSet['root'] = self
         self.gaSet['host_fld'] = host_fld
         self.gaSet['temp_fld'] = temp_fld
+        #print('aaa', self.gaSet)
         #self.if_rad_net()
 
         self.put_frames()
@@ -160,21 +174,23 @@ class MainFrame(tk.Frame):
         print(f'MainFrame, self:<{self}>, parent:<{parent}>')
         self['relief'] = self.master['relief']
         # self['bd'] = self.master['bd']
+        self.info_frames = []
         self.put_main_frames(mainapp)
 
-    def put_main_frames(self, mainapp):
-        #self.frame_start_from = StartFromFrame(self, mainapp)
-        self.frame_info_rma = InfoFrame(self, mainapp)
-        self.frame_info_pro = InfoFrame(self, mainapp)
-        #self.frame_barcodes = BarcodesFrame(self, mainapp)
 
-        #self.frame_start_from.grid(row=0, column=0, columnspan=2, sticky="news")
+    def put_main_frames(self, mainapp):
+        self.frame_info_rma = InfoFrame(self, mainapp, 'RMA')
+        self.frame_info_pro = InfoFrame(self, mainapp, 'Production')
+        self.info_frames.append(self.frame_info_rma)
+        self.info_frames.append(self.frame_info_pro)
+
+
         self.frame_info_rma.grid(row=1, column=0, sticky="news", padx=2, pady=2)
-        self.frame_info_rma.lab_type.configure(text='RMA')
+        #self.frame_info_rma.lab_type.configure(text='RMA')
         self.frame_info_rma.lab_cats.configure(text='Categories: ')
 
         self.frame_info_pro.grid(row=1, column=1, sticky="news", padx=2, pady=2)
-        self.frame_info_pro.lab_type.configure(text='Production')
+        #self.frame_info_pro.lab_type.configure(text='Production')
         self.frame_info_pro.lab_cats.configure(text='Categories: ')
 
     def put_widgets(self):
@@ -225,27 +241,124 @@ class StartFromFrame(tk.Frame):
 class InfoFrame(tk.Frame):
     '''Create the Info Frame on base of tk.Frame'''
 
-    def __init__(self, parent, mainapp):
+    def __init__(self, parent, mainapp, frame_name):
         super().__init__(parent)
-        print(f'InfoFrame, self:<{self}>, parent:<{parent}>, mainapp:<{mainapp}>')
+        print(f'InfoFrame1, self:<{self}>, parent:<{parent}>, mainapp:<{mainapp}, frame_name:<{frame_name}>')
         # self['relief'] = self.master['relief']
         self['relief'] = tk.GROOVE
         self['bd'] = 2
-        self.put_widgets()
         self.mainapp = mainapp
+        self.frame_name = frame_name
+        self.parent = parent
+        print(f'InfoFrame2, self:<{self}>, parent:<{parent}>, mainapp:<{mainapp}>, self.mainapp:<{self.mainapp}>, self.frame_name:<{self.frame_name}>')
 
-    def put_widgets(self):
-        self.lab_type = ttk.Label(self, text='', font=('', 11))
+        self.put_widgets(mainapp)
+
+    def put_widgets(self, mainapp):
+        print('infoframe put_widgets ', 'self: ', self)
+        self.lab_type = ttk.Label(self, text=self.frame_name, font=('', 11))
+
         self.lab_dates = ttk.Label(self, text='')
+        self.fr_from_date = ttk.LabelFrame(self, borderwidth=2, relief="groove", text="Open Form Date")
+
+        self.var_from_range = tk.StringVar()
+        self.rb_from_range_lastyear = ttk.Radiobutton(self.fr_from_date, text='Last Year', value='ly',
+                                                      variable=self.var_from_range,
+                                                      command=lambda: self.fill_res_lab(self.lab_type.cget('text')))
+        self.rb_from_range_lastmonth = ttk.Radiobutton(self.fr_from_date, text='Last Month', value='lm',
+                                                      variable=self.var_from_range,
+                                                      command=lambda: self.fill_res_lab(self.lab_type.cget('text')))
+        if f'{self}.var_from_range' in mainapp.gaSet:
+            self.var_from_range.set(mainapp.gaSet[f'{self}.var_from_range'])
+
+        self.lab_date_from = DateEntry(self.fr_from_date, width=12, background='darkblue',
+                        foreground='white', borderwidth=2, date_pattern="yyyy-mm-dd",
+                        firstweekday='sunday', weekenddays=[6,7])
+        self.lab_date_from.bind("<<DateEntrySelected>>", self.fill_res_lab)
+        if f'{self}.lab_date_from' in mainapp.gaSet:
+            self.lab_date_from.set_date(mainapp.gaSet[f'{self}.lab_date_from'])
+
+        self.lab_date_upto = DateEntry(self.fr_from_date, width=12, background='darkblue',
+                        foreground='white', borderwidth=2, date_pattern="yyyy-mm-dd",
+                        firstweekday='sunday',  weekenddays=[6,7] )
+        self.lab_date_upto.bind("<<DateEntrySelected>>", self.fill_res_lab)
+        if f'{self}.lab_date_upto' in mainapp.gaSet:
+            self.lab_date_upto.set_date(mainapp.gaSet[f'{self}.lab_date_upto'])
+
+        #self.fr_dates = ttk.LabelFrame(self, borderwidth=2, relief="groove", text="Open Form Date")
+        #self.date_from = ttk.Label(self.fr_dates)
+
         self.lab_cats  = ttk.Label(self, text='')
         self.var_cats = tk.StringVar()
-        self.cb_cats = ttk.Combobox(self, justify='center', width=20, textvariable=self.var_cats)
+        self.cb_cats = ttk.Combobox(self, justify='center', width=25, textvariable=self.var_cats)
+        self.cb_cats.bind("<<ComboboxSelected>>", self.fill_res_lab)
+
+        self.fr_graph_details = ttk.Frame(self, borderwidth=0, relief="flat")
+        self.var_res_lab = tk.StringVar()
+        self.res_lab = ttk.Label(self.fr_graph_details, text='')
+        self.but_crt_grph = ttk.Button(self.fr_graph_details, text='Create Graph!', command= lambda: self.create_graph())
 
         self.lab_type.grid(row=0, column=0, sticky='w', padx=2, pady=2)
         self.lab_dates.grid(row=1, column=0, sticky='w', padx=2, pady=2, columnspan=2)
-        self.lab_cats.grid(row=2, column=0, sticky='w', padx=2, pady=2)
-        self.cb_cats.grid(row=2, column=1, sticky='w', padx=2, pady=2)
+        self.fr_from_date.grid(row=2, column=0, sticky='w', padx=2, pady=2, columnspan=2)
+        self.rb_from_range_lastyear.grid(row=0, column=0, sticky='w', padx=2, pady=2)
+        self.rb_from_range_lastmonth.grid(row=1, column=0, sticky='w', padx=2, pady=2)
+        self.lab_date_from.grid(row=2, column=0, sticky='w', padx=2, pady=2)
+        self.lab_date_upto.grid(row=2, column=1, sticky='w', padx=2, pady=2)
 
+        self.lab_cats.grid(row=3, column=0, sticky='w', padx=2, pady=2)
+        self.cb_cats.grid(row=3, column=1, sticky='w', padx=2, pady=2)
+
+        self.fr_graph_details.grid(columnspan=2)
+        self.res_lab.grid()
+        self.but_crt_grph.grid()
+
+    def fill_res_lab(self, *event):
+        #print (f'fill_res_lab self:<{self}> , event:{event}')  # self.parent.info_frames:{self.parent.info_frames}
+        txt = self.res_lab.cget("text")
+        #rb_var_from_range = self.var_from_range.get()
+        #lab_date_from = self.lab_date_from.get_date()
+        #lab_date_upto = self.lab_date_upto.get_date()
+        #print('res_lab: ', txt, self, 'rb_var_from_range ', rb_var_from_range, 'lab_date_from: ', lab_date_from, 'lab_date_upto: ', lab_date_upto)
+        last_y_m = self.var_from_range.get()
+        if last_y_m == 'ly':
+            date_from = date.today() - timedelta(days=365)
+            #date_from = str((date.today() - timedelta(days=365)).strftime("%d/%m/%Y"), )
+        else:
+            date_from = date.today() - timedelta(days=30)
+            #date_from = str((date.today() - timedelta(days=30)).strftime("%d/%m/%Y"), )
+        date_from_string = date_from.strftime('%d/%m/%Y')
+
+        today_date = date.today()
+        today_date_string = today_date.strftime('%d/%m/%Y')
+
+        '''Set DateEntry accordingly to RadioButtons'''
+        self.lab_date_from.set_date(date_from)
+        self.lab_date_upto.set_date(today_date)
+
+
+
+        #self.res_lab["text"] = f'{self.frame_name} {date_from_string} {today_date_string} {self.cb_cats.get()}'
+
+        '''Save options'''
+        options = {}
+        for info_frame in self.parent.info_frames:
+            # print(f'info_frame:<{info_frame}>')
+            options[f'{info_frame}.var_from_range'] = info_frame.var_from_range.get()
+            options[f'{info_frame}.lab_date_from'] = str(info_frame.lab_date_from.get_date())
+            options[f'{info_frame}.lab_date_upto'] = str(info_frame.lab_date_upto.get_date())
+            # print (options[f'{info_frame}.lab_date_from'])
+        # print(options)
+        lib_gen.Gen.save_init(self, self.mainapp, **options)
+
+    def create_graph(self):
+        print('Button CreateGraph', 'res_lab: ', self.res_lab.cget("text"))
+        date_from = self.lab_date_from.get_date()
+        date_upto = self.lab_date_upto.get_date()
+        sql = SqliteDB()
+        df = sql.read_table(self.frame_name[0:4], date_from, date_upto)
+        dp = DrawPlot()
+        dp.by_string(df, self.cb_cats.get(), f'{self.frame_name}s by {self.cb_cats.get()}', 'Quantity', self.cb_cats.get().capitalize())
 
     def lab_type_fill(self,txt):
         self.lab_type.configure(text=txt)
@@ -293,39 +406,52 @@ class StatusBarFrame(tk.Frame):
         self.label3.update_idletasks()
 
 
-app = App()
+if __name__ == '__main__':
 
-from datetime import date
-from sql_db_rw import SqliteDB
-from gen_lib import lib_gen
-gen = lib_gen.FormatDates()
-date_from = gen.format_date_to_uso('01/01/2020')
-#date_upto = date.today().strftime('%d/%m/%Y')
-date_upto = gen.format_date_to_uso(date.today().strftime('%d/%m/%Y'))
-sql = SqliteDB()
-for tbl_name, lab_name in zip(["RMA", "Prod"], ['rma', 'pro']):
-    print(f'df_{lab_name} tbl_{tbl_name}')
+    app = App()
 
-df_rma = sql.read_table('RMA', date_from, date_upto)
-all_dates = sorted({row['open_date'] for row in df_rma})
-date_from = min(all_dates).split(' ')[0]
-date_to = max(all_dates).split(' ')[0]
-print(len(df_rma), date_from, date_to)
-#print(sorted(df_rma[0].keys()))
-app.main_frame.frame_info_rma.lab_dates_fill(f"Data is available from {date_from} upto {date_to}")
-cats = sorted(df_rma[0].keys())
-app.main_frame.frame_info_rma.cb_cats.configure(values=cats)
-app.main_frame.frame_info_rma.var_cats.set(cats[0])
+    from datetime import date
+    from sql_db_rw import SqliteDB
+    from utils import lib_gen
+    gen = lib_gen.FormatDates()
+    date_from = gen.format_date_to_uso('01/01/2020')
+    #date_upto = date.today().strftime('%d/%m/%Y')
+    date_upto = gen.format_date_to_uso(date.today().strftime('%d/%m/%Y'))
+    sql = SqliteDB()
+    sql.list_tables()
 
-df_pro = sql.read_table('Prod', date_from, date_upto)
-all_dates = sorted({row['open_date'] for row in df_pro})
-date_from = min(all_dates).split(' ')[0]
-date_to = max(all_dates).split(' ')[0]
-print(len(df_pro), date_from, date_to)
-app.status_bar_frame.status("")
-app.main_frame.frame_info_pro.lab_dates_fill(f"Data is available from {date_from} upto {date_to}")
-cats = sorted(df_pro[0].keys())
-app.main_frame.frame_info_pro.cb_cats.configure(values=cats)
-app.main_frame.frame_info_pro.var_cats.set(cats[0])
-app.status_bar_frame.status("")
-app.mainloop()
+
+    for tbl_name, lab_name in zip(["RMA", "Prod"], ['rma', 'pro']):
+        print(f'df_{lab_name} tbl_{tbl_name}')
+
+    df_rma = sql.read_table('RMA', date_from, date_upto)
+    df_pro = sql.read_table('Prod', date_from, date_upto)
+    all_dates = sorted({row['open_date'] for row in df_rma})
+    #print(all_dates)
+    date_from = min(all_dates).split(' ')[0]
+    date_upto = max(all_dates).split(' ')[0]
+    print('rma', len(df_rma), len(all_dates), date_from, date_upto, all_dates[-1])
+    #print(sorted(df_rma[0].keys()))
+    app.main_frame.frame_info_rma.lab_dates_fill(f"Data is available from {date_from} upto {date_upto}")
+    #app.main_frame.frame_info_rma.lab_date_from.set_date(date_from)
+    #app.main_frame.frame_info_rma.lab_date_upto.set_date(date_upto)
+    cats = sorted(df_rma[0].keys())
+    app.main_frame.frame_info_rma.cb_cats.configure(values=cats)
+    app.main_frame.frame_info_rma.var_cats.set(cats[0])
+
+
+    all_dates = sorted({row['open_date'] for row in df_pro})
+    #print(all_dates)
+    date_from = min(all_dates).split(' ')[0]
+    date_upto = max(all_dates).split(' ')[0]
+    #print(all_dates)
+    print('production', len(df_pro), len(all_dates), date_from, date_upto, all_dates[-1])
+    app.status_bar_frame.status("")
+    app.main_frame.frame_info_pro.lab_dates_fill(f"Data is available from {date_from} upto {date_upto}")
+    #app.main_frame.frame_info_pro.lab_date_from.set_date(date_from)
+    #app.main_frame.frame_info_pro.lab_date_upto.set_date(date_upto)
+    cats = sorted(df_pro[0].keys())
+    app.main_frame.frame_info_pro.cb_cats.configure(values=cats)
+    app.main_frame.frame_info_pro.var_cats.set(cats[0])
+    app.status_bar_frame.status("")
+    app.mainloop()

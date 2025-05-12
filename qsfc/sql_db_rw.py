@@ -1,9 +1,27 @@
 import sqlite3
+import os
 
 
 class SqliteDB:
     def __init__(self):
-        self.db = 'db.db'
+        qsfc_dir = os.path.dirname(os.path.abspath(__file__))
+        self.db = os.path.join(qsfc_dir, 'db.db')
+        print(f"[DEBUG] Using DB file: {self.db}")
+
+        # self.db = 'db.db'
+        #self.db = os.path.join(os.path.dirname(__file__), '..', 'db.db')
+        #self.db = os.path.abspath(self.db)
+        print(f"[DEBUG] Using DB file: {os.path.abspath(self.db)}", self.list_tables())
+
+    def list_tables(self):
+        import sqlite3
+        conn = sqlite3.connect(self.db)
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables = [row[0] for row in cursor.fetchall()]
+        conn.close()
+        print(f"[DEBUG] Tables in DB: {tables}")
+        return tables
 
     def fill_table(self, tbl_name, data):
         conn = sqlite3.connect(self.db)
@@ -38,27 +56,27 @@ class SqliteDB:
         conn.close()
 
     def read_table(self, tbl_name, start_date, end_date):
+        print('read_table' , tbl_name, start_date, end_date)
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         cursor.execute(f"SELECT * FROM {tbl_name} "
                        f"WHERE open_date BETWEEN '{start_date}' AND '{end_date}' "
-                       f"ORDER BY open_date ;")
+                       f"ORDER BY open_date desc;")
         #rows = cursor.fetchall()
-        df = [dict(row) for row in cursor.fetchall()]
+        rows = [dict(row) for row in cursor.fetchall()]
 
 
-        with open('c:/temp/123.csv', 'w') as f:
-            pass
+        with open(f'c:/temp/{tbl_name}.json', 'w') as f:
             f.write("Headers" + '\n')
-            for row in df:
+            for row in rows:
                 #print(row)
                 f.write(str(row)+'\n')
 
         # Commit changes and close the connection
         conn.commit()
         conn.close()
-        return df
+        return rows
 
     def retrive_min_max_dates(self, df):
         all_dates = sorted({row['open_date'] for row in df})

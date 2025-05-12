@@ -27,7 +27,7 @@ class Gen:
         # print(f'read_init script_dir {os.path.dirname(__file__)}')
         # host = ip.replace('.', '_')
         Path(host_fld).mkdir(parents=True, exist_ok=True)
-        ini_file = Path(os.path.join(host_fld, "init." + ".json"))
+        ini_file = Path(os.path.join(host_fld, "init" + ".json"))
         if os.path.isfile(ini_file) is False:
             dicti = {
                 'geom': '+210+210'
@@ -45,29 +45,42 @@ class Gen:
         print(f'read_init {ini_file} {dicti}')
         return dicti
 
-    def save_init(self, appwin):
-        print(f'save_init, self:{self}, appwin:{appwin}, {appwin.gaSet}')
+    def save_init(self, appwin, **options):
+        print(f'save_init, self:{self}, appwin:{appwin}, {appwin.gaSet}, options: {options}')
         ip = appwin.gaSet['pc_ip']
         host = ip.replace('.', '_')
         host_fld = appwin.gaSet['host_fld']
         Path(f'hosts/'+host).mkdir(parents=True, exist_ok=True)
-        ini_file = Path(os.path.join(host_fld, "init." + ".json"))
+        ini_file = Path(os.path.join(host_fld, "init" + ".json"))
         print(f'save_init host:<{host}>, pwd:<{os.getcwd()}>, ini_file:<{ini_file}>')
 
         di = {}
+        try:
+            di =  Gen.read_init(self, appwin, host_fld)
+        except:
+            di = {}
+        #self.gaSet = {**ini_dict}
         try:
             # di['geom'] = "+" + str(dicti['root'].winfo_x()) + "+" + str(dicti['root'].winfo_y())
             geom = self.get_xy(appwin)
         except:
             geom = "+230+233"
+
         di['geom'] = geom
+
+        #print('rb_var_from_range: ', appwin.gaSet['rb_var_from_range'])
+        print('options: ', options)
+        if options:
+            for key in options.keys():
+                di[key] = options[key]
         print(f'save_init, geom:{geom}')
+        print(f'save_init, di:{di}')
         try:
             with open(ini_file, 'w+') as fi:
                 json.dump(di, fi, indent=2, sort_keys=True)
                 # json.dump(gaSet, fi, indent=2, sort_keys=True)
         except Exception as e:
-            print(e)
+            print(f'Exception: {e}')
             raise (e)
 
     def get_xy(self, top):
