@@ -268,6 +268,9 @@ class InfoFrame(tk.Frame):
         self.rb_from_range_lastmonth = ttk.Radiobutton(self.fr_from_date, text='Last Month', value='lm',
                                                       variable=self.var_from_range,
                                                       command=lambda: self.fill_res_lab(self.lab_type.cget('text')))
+        self.rb_from_range_exact = ttk.Radiobutton(self.fr_from_date, text='Exact Range', value='er',
+                                                       variable=self.var_from_range,
+                                                       command=lambda: self.fill_res_lab(self.lab_type.cget('text')))
         if f'{self}.var_from_range' in mainapp.gaSet:
             self.var_from_range.set(mainapp.gaSet[f'{self}.var_from_range'])
 
@@ -305,8 +308,9 @@ class InfoFrame(tk.Frame):
         self.fr_from_date.grid(row=2, column=0, sticky='w', padx=2, pady=2, columnspan=2)
         self.rb_from_range_lastyear.grid(row=0, column=0, sticky='w', padx=2, pady=2)
         self.rb_from_range_lastmonth.grid(row=1, column=0, sticky='w', padx=2, pady=2)
-        self.lab_date_from.grid(row=2, column=0, sticky='w', padx=2, pady=2)
-        self.lab_date_upto.grid(row=2, column=1, sticky='w', padx=2, pady=2)
+        self.rb_from_range_exact.grid(row=2, column=0, sticky='w', padx=2, pady=2)
+        self.lab_date_from.grid(row=2, column=1, sticky='w', padx=2, pady=2)
+        self.lab_date_upto.grid(row=2, column=2, sticky='w', padx=2, pady=2)
 
         self.lab_cats.grid(row=3, column=0, sticky='w', padx=2, pady=2)
         self.cb_cats.grid(row=3, column=1, sticky='w', padx=2, pady=2)
@@ -330,19 +334,26 @@ class InfoFrame(tk.Frame):
         #print('res_lab: ', txt, self, 'rb_var_from_range ', rb_var_from_range, 'lab_date_from: ', lab_date_from, 'lab_date_upto: ', lab_date_upto)
         last_y_m = self.var_from_range.get()
         if last_y_m == 'ly':
-            date_from = date.today() - timedelta(days=365)
+            self.date_from = date.today() - timedelta(days=365)
+            self.date_upto = date.today()
             #date_from = str((date.today() - timedelta(days=365)).strftime("%d/%m/%Y"), )
-        else:
-            date_from = date.today() - timedelta(days=30)
+        elif last_y_m == 'lm':
+            self.date_from = date.today() - timedelta(days=30)
+            self.date_upto = date.today()
             #date_from = str((date.today() - timedelta(days=30)).strftime("%d/%m/%Y"), )
-        date_from_string = date_from.strftime('%d/%m/%Y')
+        else:
+            self.date_from = self.lab_date_from.get_date()
+            self.date_upto = self.lab_date_upto.get_date()
 
-        today_date = date.today()
-        today_date_string = today_date.strftime('%d/%m/%Y')
+        #date_from_string = date_from.strftime('%d/%m/%Y')
 
-        '''Set DateEntry accordingly to RadioButtons'''
-        self.lab_date_from.set_date(date_from)
-        self.lab_date_upto.set_date(today_date)
+
+        #today_date = date.today()
+        #today_date_string = today_date.strftime('%d/%m/%Y')
+
+        # '''Set DateEntry accordingly to RadioButtons'''
+        # self.lab_date_from.set_date(date_from)
+        # self.lab_date_upto.set_date(today_date)
 
         cat = self.cb_cats.get()
         subcat = self.cb_subcats.get()
@@ -356,7 +367,7 @@ class InfoFrame(tk.Frame):
         for row in dframe:
             if len(re.sub('[\.\-\s]+', '', row[cat])) > 0:
                 row_open_date = datetime.strptime(row['open_date'], '%Y-%m-%d %H:%M:%S.%f').date()
-                if row_open_date >= date_from and row_open_date<=today_date:
+                if row_open_date >= self.date_from and row_open_date<=self.date_upto:
                     subs.append(row[cat])
         unique_subs = sorted(list(set(subs)))
         print('unique_subs: ', cat, type(unique_subs), unique_subs)
@@ -370,18 +381,19 @@ class InfoFrame(tk.Frame):
         for info_frame in self.parent.info_frames:
             # print(f'info_frame:<{info_frame}>')
             options[f'{info_frame}.var_from_range'] = info_frame.var_from_range.get()
-            options[f'{info_frame}.lab_date_from'] = str(info_frame.lab_date_from.get_date())
-            options[f'{info_frame}.lab_date_upto'] = str(info_frame.lab_date_upto.get_date())
+            options[f'{info_frame}.lab_date_from'] = str(self.date_from)  ## str(info_frame.lab_date_from.get_date())
+            options[f'{info_frame}.lab_date_upto'] = str(self.date_upto)  ## str(info_frame.lab_date_upto.get_date())
             # print (options[f'{info_frame}.lab_date_from'])
         # print(options)
-        #lib_gen.Gen.save_init(self, self.mainapp, **options)
+        lib_gen.Gen.save_init(self, self.mainapp, **options)
 
     def create_graph(self):
         print('Button CreateGraph', 'res_lab: ', self.res_lab.cget("text"))
-        date_from = self.lab_date_from.get_date()
-        date_upto = self.lab_date_upto.get_date()
+        self.fill_res_lab()
+        #date_from = self.lab_date_from.get_date()
+        #date_upto = self.lab_date_upto.get_date()
         sql = SqliteDB()
-        df = sql.read_table(self.frame_name[0:4], date_from, date_upto)
+        df = sql.read_table(self.frame_name[0:4], self.date_from, self.date_upto)
         dp = DrawPlot()
         dp.by_string(df, self.cb_cats.get(), f'{self.frame_name}s by {self.cb_cats.get()}', 'Quantity', self.cb_cats.get().capitalize())
 
