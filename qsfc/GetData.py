@@ -36,48 +36,51 @@ if __name__ == '__main__':
     # date_from = '08/04/2025'
     # today_date_string = '12/04/2025'
     list_of_dicts = qsfc.get_data_from_qsfc('RMA', date_from, today_date_string)
+    print('dd',  list_of_dicts, list_of_dicts[0])
+    if list_of_dicts[0] is False:
+        print ('ee', list_of_dicts[1])
+    else:
+        print(f'len of list:{len(list_of_dicts)}')
+        for dicti in list_of_dicts:
+            print(dicti)
+            #for key, volume in dicti.items():
+            #    print(key, volume)
 
+            # if dicti['reporter_name']=='YEHOSHAFAT RAZIEL':
+            #     pass; #res_list.append(dicti)
+            # if re.search('ETX-220A', dicti['catalog']):
+            #     pass; #res_list.append(dicti)
 
-    #print(f'len of list:{len(list_of_dicts)}')
-    for dicti in list_of_dicts:
-        print(dicti)
-        #for key, volume in dicti.items():
-        #    print(key, volume)
+            # if dicti['reporter_name']=='YEHOSHAFAT RAZIEL' and not re.search('ETX-220A', dicti['catalog']):
+            #     pass; #res_list.append(dicti)
+            #     #print(dicti)
 
-        # if dicti['reporter_name']=='YEHOSHAFAT RAZIEL':
-        #     pass; #res_list.append(dicti)
-        # if re.search('ETX-220A', dicti['catalog']):
-        #     pass; #res_list.append(dicti)
+        # print(f'len of res_list:{len(res_list)}')
+        # for dicti in res_list:
+        #     print(dicti)
 
-        # if dicti['reporter_name']=='YEHOSHAFAT RAZIEL' and not re.search('ETX-220A', dicti['catalog']):
-        #     pass; #res_list.append(dicti)
-        #     #print(dicti)
+        #stri = input()
+        #dp = DrawPlot()
+        #dp.by_day(list_of_dicts)
+        dp = DrawPlot()
+        #dp.by_string(list_of_dicts, 'reporter_name', 'RMAs by Reporter Name', 'Quantity', 'Reporter')
+        #dp.by_string(list_of_dicts, 'tested_catalog', 'Prod by tested_catalog', 'Quantity', 'cat')
+        #dp.by_string(list_of_dicts, 'catalog', 'RMAs by catalog', 'Quantity', 'Catalog')
+        dp.by_string(list_of_dicts, 'customers_name', 'RMAs by customer', 'Quantity', 'Customer')
+        dp.by_customer_day(list_of_dicts)
+        #dp.by_day(list_of_dicts)
 
-    # print(f'len of res_list:{len(res_list)}')
-    # for dicti in res_list:
-    #     print(dicti)
-    
-    #stri = input()
-    #dp = DrawPlot()
-    #dp.by_day(list_of_dicts)
-    dp = DrawPlot()
-    #dp.by_string(list_of_dicts, 'reporter_name', 'RMAs by Reporter Name', 'Quantity', 'Reporter')
-    #dp.by_string(list_of_dicts, 'tested_catalog', 'Prod by tested_catalog', 'Quantity', 'cat')
-    dp.by_string(list_of_dicts, 'catalog', 'RMAs by catalog', 'Quantity', 'Catalog')
-    dp.by_string(list_of_dicts, 'customers_name', 'RMAs by customer', 'Quantity', 'Customer')
-    #dp.by_customer_day(list_of_dicts)
+        # DrawPlot_byDay(list_of_dicts)
+        #DrawPlot_byCustomer(list_of_dicts)
+        # DrawPlot_byCustomerDay(list_of_dicts)
+        # DrawPlot_byCatalog(list_of_dicts)
+        #DrawPlot_byString(list_of_dicts, 'customers_full_name', 'RMAs by customer', 'Quantity', 'Customer')
+        #DrawPlot_byString(list_of_dicts, 'catalog', 'RMAs by catalog', 'Quantity', 'Catalog')
+        #DrawPlot_byString(list_of_dicts, 'reporter_name', 'RMAs by Reporter Name', 'Quantity', 'Reporter')
+        #__DrawPlot_byCat(list_of_dicts)
 
-    # DrawPlot_byDay(list_of_dicts)
-    #DrawPlot_byCustomer(list_of_dicts)
-    # DrawPlot_byCustomerDay(list_of_dicts)
-    # DrawPlot_byCatalog(list_of_dicts)
-    #DrawPlot_byString(list_of_dicts, 'customers_full_name', 'RMAs by customer', 'Quantity', 'Customer')
-    #DrawPlot_byString(list_of_dicts, 'catalog', 'RMAs by catalog', 'Quantity', 'Catalog')
-    #DrawPlot_byString(list_of_dicts, 'reporter_name', 'RMAs by Reporter Name', 'Quantity', 'Reporter')
-    #__DrawPlot_byCat(list_of_dicts)
+        #tbl = SqliteDB()
+        #tbl.fill_table('RMA', list_of_dicts)
 
-    #tbl = SqliteDB()
-    #tbl.fill_table('RMA', list_of_dicts)
-
-    #import qsfc_dd
-    #qsfc_dd.app.run(debug=True)
+        #import qsfc_dd
+        #qsfc_dd.app.run(debug=True)

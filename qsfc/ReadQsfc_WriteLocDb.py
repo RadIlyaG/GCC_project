@@ -69,8 +69,11 @@ class Qsfc:
         if res:
             self.url = url + partial_url
             res = self.get_data_cert(qry_type)
-            print(f'self.url:{self.url} res:{res}')
-            return res
+            print(f'self.url:{self.url} res1:{res}')
+            if 'False' in res:
+                return False
+            else:
+                return res
         else:
             return False, url
 
@@ -91,6 +94,9 @@ if __name__ == '__main__':
 
         for tbl_name in ['Prod', 'RMA']:
             df = qsfc.get_data_from_qsfc(tbl_name, date_from_string, today_date_string)
-
-            tbl = SqliteDB()
-            tbl.fill_table(tbl_name, df)
+            if df[0] is False:
+                print('ee', df[1])
+                exit(df[1])
+            else:
+                tbl = SqliteDB()
+                tbl.fill_table(tbl_name, df)

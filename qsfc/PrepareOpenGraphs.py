@@ -292,6 +292,8 @@ class InfoFrame(tk.Frame):
         self.var_cats = tk.StringVar()
         self.cb_cats = ttk.Combobox(self, justify='center', width=25, textvariable=self.var_cats)
         self.cb_cats.bind("<<ComboboxSelected>>", self.fill_res_lab)
+        self.cb_subcats = ttk.Combobox(self, justify='center', width=35)
+        ## subcat shouldn't refresh self.cb_subcats.bind("<<ComboboxSelected>>", self.fill_res_lab)
 
         self.fr_graph_details = ttk.Frame(self, borderwidth=0, relief="flat")
         self.var_res_lab = tk.StringVar()
@@ -308,6 +310,7 @@ class InfoFrame(tk.Frame):
 
         self.lab_cats.grid(row=3, column=0, sticky='w', padx=2, pady=2)
         self.cb_cats.grid(row=3, column=1, sticky='w', padx=2, pady=2)
+        self.cb_subcats.grid(row=4, column=1, sticky='w', padx=2, pady=2)
 
         self.fr_graph_details.grid(columnspan=2)
         self.res_lab.grid()
@@ -315,6 +318,11 @@ class InfoFrame(tk.Frame):
 
     def fill_res_lab(self, *event):
         #print (f'fill_res_lab self:<{self}> , event:{event}')  # self.parent.info_frames:{self.parent.info_frames}
+
+
+
+
+        #print(df_rma)
         txt = self.res_lab.cget("text")
         #rb_var_from_range = self.var_from_range.get()
         #lab_date_from = self.lab_date_from.get_date()
@@ -336,7 +344,24 @@ class InfoFrame(tk.Frame):
         self.lab_date_from.set_date(date_from)
         self.lab_date_upto.set_date(today_date)
 
+        cat = self.cb_cats.get()
+        subcat = self.cb_subcats.get()
+        print('res_lab: ', cat, subcat)
 
+        subs = []
+        if self.lab_type.cget('text') == 'RMA':
+            dframe = df_rma
+        else:
+            dframe = df_pro
+        for row in dframe:
+            if len(re.sub('[\.\-\s]+', '', row[cat])) > 0:
+                row_open_date = datetime.strptime(row['open_date'], '%Y-%m-%d %H:%M:%S.%f').date()
+                if row_open_date >= date_from and row_open_date<=today_date:
+                    subs.append(row[cat])
+        unique_subs = sorted(list(set(subs)))
+        print('unique_subs: ', cat, type(unique_subs), unique_subs)
+        self.cb_subcats.configure(values=unique_subs)
+        self.cb_subcats.set(unique_subs[0])
 
         #self.res_lab["text"] = f'{self.frame_name} {date_from_string} {today_date_string} {self.cb_cats.get()}'
 
@@ -349,7 +374,7 @@ class InfoFrame(tk.Frame):
             options[f'{info_frame}.lab_date_upto'] = str(info_frame.lab_date_upto.get_date())
             # print (options[f'{info_frame}.lab_date_from'])
         # print(options)
-        lib_gen.Gen.save_init(self, self.mainapp, **options)
+        #lib_gen.Gen.save_init(self, self.mainapp, **options)
 
     def create_graph(self):
         print('Button CreateGraph', 'res_lab: ', self.res_lab.cget("text"))

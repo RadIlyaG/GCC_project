@@ -55,12 +55,17 @@ class SqliteDB:
         conn.commit()
         conn.close()
 
-    def read_table(self, tbl_name, start_date, end_date):
+    def read_table(self, tbl_name, start_date, end_date, cat=None, subcat=None):
         print('read_table' , tbl_name, start_date, end_date)
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        cursor.execute(f"SELECT * FROM {tbl_name} "
+        if subcat and subcat:
+            cursor.execute(f"SELECT * FROM {tbl_name} "
+                           f"WHERE (open_date BETWEEN '{start_date}' AND '{end_date}') AND ({cat}={subcat})"
+                           f"ORDER BY open_date desc;")
+        else:
+            cursor.execute(f"SELECT * FROM {tbl_name} "
                        f"WHERE open_date BETWEEN '{start_date}' AND '{end_date}' "
                        f"ORDER BY open_date desc;")
         #rows = cursor.fetchall()
