@@ -55,14 +55,14 @@ class SqliteDB:
         conn.commit()
         conn.close()
 
-    def read_table(self, tbl_name, start_date, end_date, cat=None, subcat=None):
-        print('read_table' , tbl_name, start_date, end_date)
+    def ne_read_table(self, tbl_name, start_date, end_date, ret_cat='*', cat=None, cat2=None, cat_val=None, cat2_val=None):
+        print('read_table' , tbl_name, start_date, end_date, cat, cat_val)
         conn = sqlite3.connect(self.db)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        if subcat and subcat:
-            cursor.execute(f"SELECT * FROM {tbl_name} "
-                           f"WHERE (open_date BETWEEN '{start_date}' AND '{end_date}') AND ({cat}={subcat})"
+        if cat:
+            cursor.execute(f"SELECT {ret_cat} FROM {tbl_name} "
+                           f"WHERE (open_date BETWEEN '{start_date}' AND '{end_date}') AND {cat}={cat_val})"
                            f"ORDER BY open_date desc;")
         else:
             cursor.execute(f"SELECT * FROM {tbl_name} "
@@ -81,6 +81,53 @@ class SqliteDB:
         # Commit changes and close the connection
         conn.commit()
         conn.close()
+        return rows
+
+    def read_table(self, tbl_name, start_date, end_date, ret_cat=None, cat=None, cat2=None, cat_val=None, cat2_val=None):
+        print('read_table' , tbl_name, start_date, end_date, ret_cat, cat, cat_val)
+        if ret_cat is None:
+            ret_cat_str = '*'
+        elif isinstance(ret_cat, list):
+            if 'open_date' not in ret_cat:
+                ret_cat.append('open_date')
+            ret_cat_str = ', '.join(ret_cat)
+        else:
+            # Если по ошибке передали строку — просто используем её
+            ret_cat_str = ret_cat
+
+        conn = sqlite3.connect(self.db)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        query = f"SELECT {ret_cat_str} FROM {tbl_name} WHERE (open_date BETWEEN ? AND ?)"
+        params = [start_date, end_date]
+
+        if cat:
+            query += f" AND {cat} = ?"
+            params.append(cat_val)
+
+        if cat2:
+            query += f" AND {cat2} = ?"
+            params.append(cat2_val)
+
+        query += " ORDER BY open_date DESC;"
+
+        print('qry: ',query, 'params: ', params, '\n')
+        cursor.execute(query, params)
+
+        rows = [dict(row) for row in cursor.fetchall()]
+        #print('rows: ', rows, '\n')
+        # Commit changes and close the connection
+        conn.commit()
+        conn.close()
+
+
+        with open(f'c:/temp/{tbl_name}.json', 'w') as f:
+            f.write("Headers" + '\n')
+            for row in rows:
+                #print(row)
+                f.write(str(row)+'\n')
+
         return rows
 
     def retrive_min_max_dates(self, df):

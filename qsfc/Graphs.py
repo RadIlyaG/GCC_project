@@ -118,10 +118,10 @@ class DrawPlot:
     '''
     kwargs['cat']     :  fields of DB (product_line, catalog, customer_name, ...)
     kwargs['subcat']  :  one value of cat. if cat==product_line then subcat may be ETX-203AX or SecFlow-1p or MP-DATA Modules
-    kwargs['subcat2'] :  an additional field we cat filter the cat. if cat==product_line and subcat is ETX-203AX,
+    kwargs['cat2'] :  an additional field we cat filter the cat. if cat==product_line and subcat is ETX-203AX,
                          then subcat2 may be location (for Reference U3, D1..) or rma_kind_desc
     '''
-    def by_str_cat_subcat(self, data, **kwargs):
+    def ne_by_str_cat_subcat(self, data, **kwargs):
         self.data = data
         field_str = kwargs['cat']
         # count how manu times each name is appearing
@@ -202,6 +202,188 @@ class DrawPlot:
             return figures[kwargs['chart_type']]
         else:
             return fig_bar
+
+
+    def by_str_cat_subcat(self, data, **kwargs):
+        self.data = data
+        print('kwargs: ', kwargs)
+        field_str = kwargs['cat']
+        # count how many times each name is appearing
+        #
+        if kwargs['subcat']:
+            # 'cat': 'rad_part', 'subcat': 'PS-250/48-4U', 'cat2': 'date_code'
+            #by_field_str = Counter(row[kwargs['cat2']] for row in self.data if row[field_str] == kwargs['subcat'])
+            # если в строке в поле rad_part ('cat') записано 'PS-250/48-4U' ('subcat'),
+            # то считаем какие и сколько раз есть строк с разными  'date_code' ('cat2')
+
+            # if in rad_part ('cat') is written 'PS-250/48-4U' ('subcat') then
+            # we count in how many rows each date_code ('cat2') of given 'subcat' is appearing
+            # '': 31, '1812': 30, '.': 5, '1646': 2, '1402': 1,
+            by_field_str = Counter(row[kwargs['cat2']] for row in self.data if row[kwargs['cat']] == kwargs['subcat'])
+        else:
+            # if there is no subcat
+            if kwargs['cat2']:
+                # if there is cat2 - product_line['cat'] None nff['cat2'] - we count how many times each product_line has nff
+                # 'cat': 'rad_part', 'subcat': None, 'cat2': 'date_code'
+                # 'cat': None, 'subcat': None, 'cat2': 'date_code'
+                #  we count in how many rows each non-empty date_code is appearing
+                by_field_str = Counter(row[kwargs['cat2']] for row in self.data if row[kwargs['cat2']] != '')
+            else:
+                # 'cat': 'rad_part', 'subcat': None, 'cat2': None
+                # we count in how many rows each non-empty rad_part ('cat') is appearing :
+                # '': 2070, 'LF-IC-NT5TU32M16CG-3CI/ETX': 171, 'PS-250/AC-4U': 108, ...
+                by_field_str = Counter(row[kwargs['cat']] for row in self.data if row[kwargs['cat']] != '')
+        print('by_field_str: ', by_field_str)
+        ## ascending sort by number of records
+        sorted_field_str_asc = sorted(by_field_str.items(), key=lambda x: x[1])
+
+        names = [x[0] if x[0] != '' else 'not processed' for x in sorted_field_str_asc]
+        if kwargs['cat2'] == 'doa' or kwargs['cat2'] == 'nff':
+            names = [kwargs['cat2'].upper() if x == "1" else
+                     f"Not {kwargs['cat2'].upper()}" if x == '0' else
+                     x for x in names]
+        counts = [x[1] for x in sorted_field_str_asc]
+        summ = sum(counts)
+
+        #print('names: ', names, '\ncounts: ', counts, 'summ: ', summ)
+
+        self.parse_date_from_str_into_datetime()
+
+        dates_only = []
+        for row in self.data:
+            dates_only.append(row['open_date'])
+            # if isinstance(row['open_date'], str):
+            #     dates_only.append(datetime.strptime(row['open_date'], self.strptime_format).date())
+            # else:
+            #     dates_only.append(row['open_date'])
+
+        date_from = min(dates_only)
+        date_to = max(dates_only)
+
+        tit = kwargs['tit']
+        xaxis_tit = kwargs['xaxis_tit']
+        yaxis_tit = kwargs['yaxis_tit']
+        if date_from != date_to:
+            titl = f"{tit} {date_from.strftime(self.title_date_format)} — {date_to.strftime(self.title_date_format)}"
+        else:
+            titl = f"{tit} {date_from.strftime(self.title_date_format)}"
+
+        figures = {}
+
+        fig_bar = go.Figure(go.Bar(x=names, y=counts, orientation='v', text=counts))
+        figures['bar'] = fig_bar
+        fig_bar.update_layout(title=f'{titl},\t\tTotal: {summ}',
+                          xaxis_title=xaxis_tit,
+                          yaxis_title=yaxis_tit)
+        #fig.show()
+        pio.write_html(fig_bar, file=f'c:/temp/{tit}.bar.html', auto_open=True)
+
+        #customer_counts = Counter(row[field_str] for row in data)
+        if kwargs['subcat']:
+            customer_counts = Counter(row[kwargs['cat2']] for row in self.data if row[field_str] == kwargs['subcat'])
+        else:
+            # if there is no subcat
+            if kwargs['cat2']:
+                # if there is cat2 - product_line['cat'] None nff['cat2'] - we count how many times each product_line has nff
+                customer_counts = Counter(row[kwargs['cat2']] for row in self.data)
+            else:
+                customer_counts = Counter(row[kwargs['cat']] for row in self.data)
+        print('customer_counts', customer_counts)
+        cc = {"not processed" if len(k) == 0 else k: v for k, v in customer_counts.items()}
+        print('cc', cc)
+        if kwargs['subcat'] and (kwargs['cat2'] == 'doa' or kwargs['cat2'] == 'nff'):
+            ccc = {f"Not {kwargs['cat2'].upper()}" if k == "0" else
+                   'not processed' if k == 'not processed' else
+                   f"{kwargs['cat2'].upper()}": v for k, v in cc.items()}
+        else:
+            ccc = cc
+        print('ccc', ccc)
+        fig_pie = go.Figure(data=[
+            go.Pie(labels=list(ccc.keys()), values=list(ccc.values()), hole=0)
+        ])
+        figures['pie'] = fig_pie
+
+        fig_pie.update_layout(title=f'{titl},\t\tTotal: {summ}')
+        #fig.show()
+        pio.write_html(fig_pie, file=f'c:/temp/{tit}.pie.html', auto_open=True)
+
+        if 'chart_type' in kwargs:
+            print (kwargs['chart_type'])
+            return figures[kwargs['chart_type']]
+        else:
+            return fig_bar
+
+
+    def by_category(self, data, **kwargs):
+        self.data = data
+        print('kwargs: ', kwargs)
+
+        for x in data[:10]:
+            print(x)
+        # field_str = kwargs['cat']
+        # count how many times each name is appearing
+
+        by_field_str = Counter(row[kwargs['cat']] for row in self.data if row[kwargs['cat']] != '')
+        print('by_field_str: ', type(by_field_str), by_field_str)
+        ## ascending sort by number of records
+        sorted_field_str_asc = sorted(by_field_str.items(), key=lambda x: x[1])
+
+        names = [x[0] if x[0] != '' else 'not processed' for x in sorted_field_str_asc]
+        counts = [x[1] for x in sorted_field_str_asc]
+        summ = sum(counts)
+
+        #print('names: ', names, '\ncounts: ', counts, 'summ: ', summ)
+
+        self.parse_date_from_str_into_datetime()
+
+        dates_only = []
+        for row in self.data:
+            dates_only.append(row['open_date'])
+            # if isinstance(row['open_date'], str):
+            #     dates_only.append(datetime.strptime(row['open_date'], self.strptime_format).date())
+            # else:
+            #     dates_only.append(row['open_date'])
+
+        date_from = min(dates_only)
+        date_to = max(dates_only)
+
+        tit = kwargs['tit']
+        xaxis_tit = kwargs['xaxis_tit']
+        yaxis_tit = kwargs['yaxis_tit']
+        if date_from != date_to:
+            titl = f"{tit} {date_from.strftime(self.title_date_format)} — {date_to.strftime(self.title_date_format)}"
+        else:
+            titl = f"{tit} {date_from.strftime(self.title_date_format)}"
+
+        figures = {}
+
+        fig_bar = go.Figure(go.Bar(x=names, y=counts, orientation='v', text=counts))
+        figures['bar'] = fig_bar
+        fig_bar.update_layout(title=f'{titl},\t\tTotal: {summ}',
+                          xaxis_title=xaxis_tit,
+                          yaxis_title=yaxis_tit)
+        #fig.show()
+        pio.write_html(fig_bar, file=f'c:/temp/{tit}.bar.html', auto_open=True)
+
+        customer_counts = Counter(row[kwargs['cat']] for row in self.data)
+        #print('customer_counts', customer_counts)
+        ccc = {"not processed" if len(k) == 0 else k: v for k, v in customer_counts.items()}
+        #print('ccc', ccc)
+        fig_pie = go.Figure(data=[
+            go.Pie(labels=list(ccc.keys()), values=list(ccc.values()), hole=0)
+        ])
+        figures['pie'] = fig_pie
+
+        fig_pie.update_layout(title=f'{titl},\t\tTotal: {summ}')
+        #fig.show()
+        pio.write_html(fig_pie, file=f'c:/temp/{tit}.pie.html', auto_open=True)
+
+        if 'chart_type' in kwargs:
+            print (kwargs['chart_type'])
+            return figures[kwargs['chart_type']]
+        else:
+            return fig_bar
+
 
 
     def by_customer_day(self, data):
