@@ -5,9 +5,12 @@ import tkinter as tk
 #from tkinter import tkcalendar
 from tkcalendar import Calendar, DateEntry
 from tkinter import messagebox, ttk
+from tkinter.filedialog import askopenfilename, asksaveasfilename
+from tkinter.messagebox import showerror
 import re
 import os
 import glob
+import subprocess
 from subprocess import check_output
 import socket
 from pathlib import Path
@@ -16,6 +19,7 @@ import sys
 import functools
 from functools import partial
 from datetime import date, timedelta, datetime
+import textwrap
 
 from Graphs import DrawPlot
 
@@ -184,14 +188,14 @@ class MainFrame(tk.Frame):
         self.info_frames.append(self.frame_info_rma)
         self.info_frames.append(self.frame_info_pro)
 
-
         self.frame_info_rma.grid(row=1, column=0, sticky="news", padx=2, pady=2)
-        #self.frame_info_rma.lab_type.configure(text='RMA')
         self.frame_info_rma.lab_cats.configure(text='Categories: ')
 
         self.frame_info_pro.grid(row=1, column=1, sticky="news", padx=2, pady=2)
-        #self.frame_info_pro.lab_type.configure(text='Production')
         self.frame_info_pro.lab_cats.configure(text='Categories: ')
+
+        self.frame_info_choose_graph = OpenGraph(self, mainapp)
+        self.frame_info_choose_graph.grid(row=2, column=0, sticky="news", padx=2, pady=2, columnspan=2)
 
     def put_widgets(self):
         pass
@@ -293,15 +297,16 @@ class InfoFrame(tk.Frame):
 
         self.lab_cats  = ttk.Label(self, text='')
         self.var_cats = tk.StringVar()
-        self.cb_cats = ttk.Combobox(self, justify='center', width=25, textvariable=self.var_cats)
+        self.cb_cats = ttk.Combobox(self,  width=25, textvariable=self.var_cats)
         self.cb_cats.bind("<<ComboboxSelected>>", self.fill_res_lab)
-        self.cb_subcats = ttk.Combobox(self, justify='center', width=35)
+        self.cb_subcats = ttk.Combobox(self, width=35)
         ## subcat shouldn't refresh self.cb_subcats.bind("<<ComboboxSelected>>", self.fill_res_lab)
 
         self.fr_graph_details = ttk.Frame(self, borderwidth=0, relief="flat")
         self.var_res_lab = tk.StringVar()
         self.res_lab = ttk.Label(self.fr_graph_details, text='')
         self.but_crt_grph = ttk.Button(self.fr_graph_details, text='Create Graph!', command= lambda: self.create_graph())
+        self.but_save_grph = ttk.Button(self.fr_graph_details, text='Save the Graph', command=lambda: self.save_graph())
 
         self.lab_type.grid(row=0, column=0, sticky='w', padx=2, pady=2)
         self.lab_dates.grid(row=1, column=0, sticky='w', padx=2, pady=2, columnspan=2)
@@ -319,6 +324,7 @@ class InfoFrame(tk.Frame):
         self.fr_graph_details.grid(columnspan=2)
         self.res_lab.grid()
         self.but_crt_grph.grid()
+        self.but_save_grph.grid()
 
     def fill_res_lab(self, *event):
         #print (f'fill_res_lab self:<{self}> , event:{event}')  # self.parent.info_frames:{self.parent.info_frames}
@@ -397,10 +403,128 @@ class InfoFrame(tk.Frame):
         dp = DrawPlot()
         dp.by_string(df, self.cb_cats.get(), f'{self.frame_name}s by {self.cb_cats.get()}', 'Quantity', self.cb_cats.get().capitalize())
 
+    def save_graph(self):
+        init_dir = self.mainapp.gaSet['host_fld']
+        fname = asksaveasfilename(initialdir=init_dir,
+                                title="Open file okay?",
+                                filetypes=(("text files", "*.py"),
+                                           ("all files", "*.*"))
+                                )
+        print(fname)
+
+        template = textwrap.dedent('''
+        from qsfc.sql_db_rw import SqliteDB
+        from qsfc.Graphs import DrawPlot
+        from utils import lib_gen
+        
+        d_f = "{d_f_data}"
+        d_u = "{d_u_data}"
+        
+        gen = lib_gen.FormatDates()
+        date_from = gen.format_date_to_uso(d_f)
+        date_upto = gen.format_date_to_uso(d_u, last_sec=True)
+        sql = SqliteDB()
+    
+        dp = DrawPlot()
+        #returned = "failure_desc"
+        
+        tbl_nam = "{tbl_nam_data}"
+        ret_cat = "{ret_cat_data}"
+        cat = "{cat_data}"
+        cat_val = "{cat_val_data}"
+        cat2 = "{cat2_data}"
+        cat2_val = "{cat2_val_data}"
+        gr_cat = "{gr_cat_data}"
+        gr_title = "{gr_tit_data}"
+        xaxis_tit = "{xaxis_tit_data}"
+        yaxis_tit = "{yaxis_tit_data}"
+        options = {{
+            "cat": gr_cat,
+            "tit": gr_title,
+            "xaxis_tit": xaxis_tit,
+            "yaxis_tit": yaxis_tit,
+            "chart_type": "bar",
+        }}
+        df = sql.read_table(tbl_nam, date_from, date_upto, ret_cat=ret_cat, cat=cat, cat_val=cat_val, 
+                            cat2=cat2, cat2_val=cat2_val)
+        dp.by_category(df, **options)
+        ''')
+
+        date_from = '11/03/2024'
+        date_upto = '12/04/2025'
+        tbl_nam = 'RMA'
+        ret_cat  = "failure_desc"
+        cat = "product_line"
+        cat_val = "ETX-203AX"
+        cat2 = None
+        cat2_val = None
+        gr_cat = "failure_desc"
+        gr_title = "RMAs by failure_desc of ETX-203AX"
+        xaxis_tit = "failure_desc"
+        yaxis_tit = "Quantity"
+
+        code = template.format(
+            d_f_data=date_from,
+            d_u_data=date_upto,
+            tbl_nam_data = tbl_nam,
+            ret_cat_data = ret_cat,
+            cat_data = cat,
+            cat_val_data = cat_val,
+            cat2_data=cat2,
+            cat2_val_data=cat2_val,
+            gr_cat_data = gr_cat,
+            gr_tit_data = gr_title,
+            xaxis_tit_data= xaxis_tit,
+            yaxis_tit_data = yaxis_tit,
+        )
+
+        with open(fname, "w", encoding="utf-8") as f:
+            f.write(code.strip())
+
     def lab_type_fill(self,txt):
         self.lab_type.configure(text=txt)
     def lab_dates_fill(self,txt):
         self.lab_dates.configure(text=txt)
+
+
+class OpenGraph(tk.Frame):
+    '''Create the Info Frame on base of tk.Frame'''
+
+    def __init__(self, parent, mainapp):
+        super().__init__(parent)
+        print(f'OpenGraph, self:<{self}>, parent:<{parent}>, mainapp:<{mainapp}>')
+        # self['relief'] = self.master['relief']
+        self['relief'] = tk.GROOVE
+        self['bd'] = 2
+        self.mainapp = mainapp
+        self.parent = parent
+        print(f'OpenGraph2, self:<{self}>, parent:<{parent}>, mainapp:<{mainapp}>, self.mainapp:<{self.mainapp}>')
+
+        self.put_widgets(mainapp)
+
+    def put_widgets(self, mainapp):
+        print('open_graph put_widgets ', 'self: ', self)
+        self.lab_koteret = ttk.Label(self, text="Choose saved graph", font=('', 11))
+        #self.lab_koteret.grid(row=0, column=0, sticky='w', padx=2, pady=2)
+
+        self.open_file = ttk.Button(self, text="Choose saved graph", command=self.load_file)
+        self.open_file.grid(row=0, column=0, sticky='w', padx=2, pady=2)
+
+    def load_file(self):
+        init_dir = self.mainapp.gaSet['host_fld']
+        fname = askopenfilename(initialdir=init_dir,
+                                title="Open file okay?",
+                                filetypes=(("text files", "*.py"),
+                                           ("all files", "*.*"))
+                                )
+        if fname:
+            try:
+                subprocess.run([sys.executable, fname], check=True)
+            except:  # <- naked except is a bad idea
+                showerror("Open Source File", "Failed to read file\n'%s'" % fname)
+            return
+
+
 
 class StatusBarFrame(tk.Frame):
     '''Create the Status Bar Frame on base of tk.Frame'''
