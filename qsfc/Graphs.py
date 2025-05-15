@@ -324,7 +324,7 @@ class DrawPlot:
         # count how many times each name is appearing
 
         by_field_str = Counter(row[kwargs['cat']] for row in self.data if row[kwargs['cat']] != '')
-        print('by_field_str: ', type(by_field_str), by_field_str)
+        #print('by_field_str: ', type(by_field_str), by_field_str)
         ## ascending sort by number of records
         sorted_field_str_asc = sorted(by_field_str.items(), key=lambda x: x[1])
 
@@ -450,8 +450,10 @@ class DrawPlot:
         ## not fine pio.write_html(fig_sca, file=f'c:/temp/{tit}.sca.html', auto_open=True)
         pio.write_html(fig_bar, file=f'c:/temp/{tit}.bar.html', auto_open=True)
 
-    def by_cat_day(self, data, cat):
+    def by_cat_day(self, data, **kwargs):
         self.data = data
+        print('kwargs: ', kwargs)
+
         # Parse str into datetime
         self.parse_date_from_str_into_datetime()
 
@@ -461,7 +463,7 @@ class DrawPlot:
         #     pass
         for row in data:
             date = row['open_date'].date()
-            name = row[cat]  #  'customers_full_name'
+            name = row[kwargs['cat']]  #  'customers_full_name'
             daily_counts[(date, name)] += 1
 
         # Preparing data: dict {name: {date: count}}
@@ -477,14 +479,16 @@ class DrawPlot:
         fig_sca = go.Figure()
         fig_bar = go.Figure()
 
+        summ = 0
         for cate, date_counts in cat_day_map.items():
             y_values = [date_counts.get(d, 0) for d in all_dates]
+            summ += sum(y_values)
             text_labels = [f"{cate}: {v}" for v in y_values]
-            fig_sca.add_trace(go.Scatter(x=all_dates, y=y_values, mode='lines+markers', name=cat))
+            fig_sca.add_trace(go.Scatter(x=all_dates, y=y_values, mode='lines+markers', name=kwargs['cat']))
             fig_bar.add_trace(go.Bar(name=cate, x=all_dates, y=y_values, text = y_values, orientation='v'))
             ## , text = text_labels, textposition='inside', textfont=dict(size=22)
 
-        tit = f'RMAs per Date and {cat}'
+        tit = f"RMAs per Date and {kwargs['tit']}"
         if date_from != date_to:
             titl = f"{tit} {date_from.strftime(self.title_date_format)} — {date_to.strftime(self.title_date_format)}"
         else:
@@ -504,9 +508,10 @@ class DrawPlot:
 
         fig_bar.update_layout(
             barmode='group',  # 'group' stack
-            title=titl,
+            title=f'{titl},\t\tTotal: {summ}',
             xaxis_title='Date',
-            yaxis_title='Quantity'
+            yaxis_title='Quantity',
+            autosize=True
         )
         pio.write_html(fig_bar, file=f'c:/temp/{tit}.barg.html', auto_open=True)
 
