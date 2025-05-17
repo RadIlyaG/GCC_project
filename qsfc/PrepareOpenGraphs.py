@@ -391,6 +391,7 @@ class InfoFrame(tk.Frame):
             options[f'{info_frame}.lab_date_upto'] = str(self.date_upto)  ## str(info_frame.lab_date_upto.get_date())
             # print (options[f'{info_frame}.lab_date_from'])
         # print(options)
+        #lgen = lib_gen.Gen()
         lib_gen.Gen.save_init(self, self.mainapp, **options)
 
     def create_graph(self):
@@ -405,6 +406,7 @@ class InfoFrame(tk.Frame):
 
     def save_graph(self):
         init_dir = self.mainapp.gaSet['host_fld']
+        fname = ''
         fname = asksaveasfilename(initialdir=init_dir,
                                 title="Open file okay?",
                                 filetypes=(("text files", "*.py"),
@@ -412,74 +414,69 @@ class InfoFrame(tk.Frame):
                                 )
         print(fname)
 
-        template = textwrap.dedent('''
-        from qsfc.sql_db_rw import SqliteDB
-        from qsfc.Graphs import DrawPlot
-        from utils import lib_gen
-        
-        d_f = "{d_f_data}"
-        d_u = "{d_u_data}"
-        
-        gen = lib_gen.FormatDates()
-        date_from = gen.format_date_to_uso(d_f)
-        date_upto = gen.format_date_to_uso(d_u, last_sec=True)
-        sql = SqliteDB()
-    
-        dp = DrawPlot()
-        #returned = "failure_desc"
-        
-        tbl_nam = "{tbl_nam_data}"
-        ret_cat = "{ret_cat_data}"
-        cat = "{cat_data}"
-        cat_val = "{cat_val_data}"
-        cat2 = "{cat2_data}"
-        cat2_val = "{cat2_val_data}"
-        gr_cat = "{gr_cat_data}"
-        gr_title = "{gr_tit_data}"
-        xaxis_tit = "{xaxis_tit_data}"
-        yaxis_tit = "{yaxis_tit_data}"
-        options = {{
-            "cat": gr_cat,
-            "tit": gr_title,
-            "xaxis_tit": xaxis_tit,
-            "yaxis_tit": yaxis_tit,
-            "chart_type": "bar",
-        }}
-        df = sql.read_table(tbl_nam, date_from, date_upto, ret_cat=ret_cat, cat=cat, cat_val=cat_val, 
-                            cat2=cat2, cat2_val=cat2_val)
-        dp.by_category(df, **options)
-        ''')
-
-        date_from = '11/03/2024'
-        date_upto = '12/04/2025'
+        date_from = gen.format_date_to_uso('11/03/2024')
+        date_upto = gen.format_date_to_uso('12/04/2025', last_sec=True)
         tbl_nam = 'RMA'
-        ret_cat  = "failure_desc"
+        ret_cat = ["failure_desc"]
         cat = "product_line"
         cat_val = "ETX-203AX"
         cat2 = None
         cat2_val = None
-        gr_cat = "failure_desc"
-        gr_title = "RMAs by failure_desc of ETX-203AX"
-        xaxis_tit = "failure_desc"
-        yaxis_tit = "Quantity"
+        options = {}
+        options = {
+            'cat': 'failure_desc',
+            'tit': 'RMAs by failure_desc of ETX-203AX',
+            'xaxis_tit': 'failure_desc',
+            'yaxis_tit': 'Quantity',
+            'chart_type': 'bar',
+        }
+        include_extra = False
 
-        code = template.format(
-            d_f_data=date_from,
-            d_u_data=date_upto,
-            tbl_nam_data = tbl_nam,
-            ret_cat_data = ret_cat,
-            cat_data = cat,
-            cat_val_data = cat_val,
-            cat2_data=cat2,
-            cat2_val_data=cat2_val,
-            gr_cat_data = gr_cat,
-            gr_tit_data = gr_title,
-            xaxis_tit_data= xaxis_tit,
-            yaxis_tit_data = yaxis_tit,
-        )
+        lines = []
+        lines += [
+            "from qsfc.sql_db_rw import SqliteDB",
+            "from qsfc.Graphs import DrawPlot",
+            "from utils import lib_gen",
+            "",
+        ]
+        
+        lines += [
+            "gen = lib_gen.FormatDates()",
+            # f"date_from = gen.format_date_to_uso('{date_from}')",
+            # f"date_upto = gen.format_date_to_uso('{date_upto}', last_sec=True)",
+            f"date_from = '{date_from}'",
+            f"date_upto = '{date_upto}'",
+            "sql = SqliteDB()",
+            "dp = DrawPlot()",
+            "",
+            "options = {"
+        ]
+        for key, val in options.items():
+            lines.append(f'    "{key}": "{val}",')
+        lines.append("}")
+        lines.append("")
+
+        db_call = f"df = sql.read_table('{tbl_nam}', '{date_from}', '{date_upto}', ret_cat={ret_cat}"
+        if cat:
+             print('cat')
+             db_call += f", cat='{cat}', cat_val='{cat_val}'"
+        if cat2:
+             db_call += f", cat2='{cat2}', cat2_val='{cat2_val}'"
+        db_call += ")"
+        lines.append(db_call)
+        lines.append("dp.by_category(df, **options)")
+
+        if include_extra:
+            lines += [
+                "",
+                "# Сохранить график в файл (нужен kaleido)",
+                'dp.fig.write_image("output_plot.png")',
+            ]
 
         with open(fname, "w", encoding="utf-8") as f:
-            f.write(code.strip())
+                f.write("\n".join(lines))
+
+
 
     def lab_type_fill(self,txt):
         self.lab_type.configure(text=txt)

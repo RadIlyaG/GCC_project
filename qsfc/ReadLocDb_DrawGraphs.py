@@ -197,83 +197,84 @@ dp = DrawPlot()
 
 
 
-## what kinds of failure_desc were shipped product_line ETX-203AX
-
-returned = 'failure_desc'
+# what kinds of failure_desc were shipped product_line ETX-203AX
+## Show me all 'failure_desc' where 'product_line' is 'ETX-203AX'
 options = {
-    'cat' : returned,
-    'tit': 'RMAs by failure_desc of ETX-203AX',
-    'xaxis_tit' : 'failure_desc',
+    'cat' : 'failure_desc',
+    'tit': 'Failure Types of ETX-203AX',
+    'xaxis_tit' : 'Failure Types',
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
 }
-# df = sql.read_table('RMA', date_from, date_upto, ret_cat=[returned], cat='product_line', cat_val="ETX-203AX")
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['failure_desc'], cat='product_line', cat_val="ETX-203AX")
 # dp.by_category(df, **options)
 
 #  NFF or not
+## Show me all 'nff'
 returned = 'nff'
 options = {
-    'cat' : returned,
+    'cat' : 'nff',
     'tit': 'NFF or not',
     'xaxis_tit' : 'NFF',
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
 }
-# df = sql.read_table('RMA', date_from, date_upto,  ret_cat=[returned])
+# df = sql.read_table('RMA', date_from, date_upto,  ret_cat=['nff'])
 # dp.by_category(df, **options)
 
 
 # which customers send NFF
-returned = 'customers_name'
+## Show me all 'customers_name' which sent 'nff'
 options = {
-    'cat' : returned,
+    'cat' : 'customers_name',
     'tit': 'NFF by customer',
     'xaxis_tit' : 'Customer',
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
 }
-# df = sql.read_table('RMA', date_from, date_upto, ret_cat=[returned], cat='nff', cat_val='1')
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['customers_name'], cat='nff', cat_val='1')
 # dp.by_category(df, **options)
 
 # which clients send RMA
-returned = 'customers_name'
+## Show me all 'customers_name'
 options = {
-    'cat' : returned,
+    'cat' : 'customers_name',
     'tit': 'RMA by customer',
     'xaxis_tit' : 'Customer',
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
 }
-# df = sql.read_table('RMA', date_from, date_upto, ret_cat=[returned])
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['customers_name'])
 #dp.by_category(df, **options)
 
 ## which catalog shipped as NFF
-returned = 'catalog'
+## Swhow me all 'catalog' where 'nff' is '1'
 options = {
-    'cat' : returned,
+    'cat' : 'catalog',
     'tit': 'NFF by catalog',
     'xaxis_tit' : 'NFF by catalog',
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
 }
-# df = sql.read_table('RMA', date_from, date_upto, cat='nff', cat_val='1', ret_cat=[returned])
-#dp.by_category(df, **options)
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['catalog'], cat='nff', cat_val='1')
+# dp.by_category(df, **options)
+
 
 ## which product_line shipped as NFF
-returned = 'product_line'
+## Show me all 'product_line' where 'nff' is '1'
 options = {
-    'cat' : returned,
+    'cat' : 'product_line',
     'tit': 'NFF by product_line',
     'xaxis_tit' : 'NFF by product_line',
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
 }
-# df = sql.read_table('RMA', date_from, date_upto, cat='nff', cat_val='1', ret_cat=[returned])
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['product_line'], cat='nff', cat_val='1')
 #dp.by_category(df, **options)
 
 
 ## Data codes for LF-IC-NT5TU32M16CG-3CI/ETX
-# returned = 'rad_part'
+## Show me all 'date_code' where 'rad_part' is 'LF-IC-NT5TU32M16CG-3CI/ETX'
 options = {
     'cat' : 'date_code',
     'tit': 'RMAs by Date Code of LF-IC-NT5TU32M16CG-3CI_ETX',
@@ -284,32 +285,32 @@ options = {
 # df = sql.read_table('RMA', date_from, date_upto, ret_cat=['date_code'], cat='rad_part', cat_val='LF-IC-NT5TU32M16CG-3CI/ETX')
 # dp.by_category(df, **options)
 
-## Data codes for all
-returned = 'date_code'
+# Data codes for all
+## Show me all 'date_code'
 options = {
-    'cat' : returned,
+    'cat' : 'date_code',
     'tit': 'RMAs by Date Code of all',
     'xaxis_tit' : 'Date Code',
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
 }
-# df = sql.read_table('RMA', date_from, date_upto, ret_cat=[returned])
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['date_code'])
 # dp.by_category(df, **options)
 
 # DOAs
-returned = 'customers_name'
+## Show me all 'customers_name' where 'doa' is '1'
 options = {
-    'cat' : returned,
+    'cat' : 'customers_name',
     'tit': 'RMAs by DOA',
     'xaxis_tit' : 'DOA',
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
 }
-# df = sql.read_table('RMA', date_from, date_upto, ret_cat=[returned], cat='doa', cat_val='1')
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['customers_name'], cat='doa', cat_val='1')
 # dp.by_category(df, **options)
 
 # DOAs by customers_name CANCOM GMBH
-# returned = 'customers_name'
+## Show me when 'doa' were sent where 'customers_name' is CANCOM GMBH
 options = {
     'cat' : 'doa',
     'tit': 'RMAs by DOA CANCOM GMBH',
@@ -317,12 +318,25 @@ options = {
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
 }
-# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['doa'], cat='customers_name', cat_val='CANCOM GMBH',cat2='doa', cat2_val='1')
+df = sql.read_table('RMA', date_from, date_upto, ret_cat=['doa'], cat='customers_name', cat_val='CANCOM GMBH',cat2='doa', cat2_val='1')
 # dp.by_category(df, **options)
+dp.by_cat_day(df, **options)
+
+## Show me all 'doa'  where 'customers_name' is CANCOM GMBH
+options = {
+    'cat' : 'catalog',
+    'tit': 'Catalog DOA CANCOM GMBH',
+    'xaxis_tit' : 'DOA CANCOM GMBH',
+    'yaxis_tit' : 'Quantity',
+    'chart_type' : 'bar',
+}
+df = sql.read_table('RMA', date_from, date_upto, ret_cat=['doa', 'catalog'], cat='customers_name', cat_val='CANCOM GMBH',cat2='doa', cat2_val='1')
+dp.by_category(df, **options)
 # dp.by_cat_day(df, **options)
 
 # NFF by customers_name Bynet
-# returned = 'customers_name'
+## Show me all 'nff' where 'customers_name' is BYNET
+## Show me when 'nff' were sent where  'customers_name' is BYNET
 options = {
     'cat' : 'nff',
     'tit': 'RMAs by NFF Bynet',
@@ -330,65 +344,68 @@ options = {
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
 }
-df = sql.read_table('RMA', date_from, date_upto, ret_cat=['nff'], cat='customers_name', cat_val='BYNET', cat2='nff', cat2_val='1')
-dp.by_category(df, **options)
-dp.by_cat_day(df, **options)
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['nff'], cat='customers_name', cat_val='BYNET', cat2='nff', cat2_val='1')
+# # dp.by_category(df, **options)
+# dp.by_cat_day(df, **options)
 
 ## what kinds of repair_types were shipped product_line ETX-203AX
-returned = 'repair_types'
+## Show me all 'repair_types' where 'product_line' is ETX-203AX
 options = {
-    'cat' : returned,
+    'cat' : 'repair_types',
     'tit': 'RMAs by repair_types of ETX-203AX',
     'xaxis_tit' : 'repair_types',
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
 }
-# df = sql.read_table('RMA', date_from, date_upto, ret_cat=[returned], cat='product_line', cat_val="ETX-203AX")
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['repair_types'], cat='product_line', cat_val="ETX-203AX")
 # dp.by_category(df, **options)
 
 ##  kinds of repair_types
-returned = 'repair_types'
+## Show me all 'repair_types'
 options = {
-    'cat' : returned,
+    'cat' : 'repair_types',
     'tit': 'RMAs by repair_types',
     'xaxis_tit' : 'repair_types',
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
 }
-# df = sql.read_table('RMA', date_from, date_upto, ret_cat=[returned])
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['repair_types'])
 # dp.by_category(df, **options)
 
-##  which components replaced more
-returned = 'rad_part'
+#  which components replaced more
+## Show me all 'rad_part'
 options = {
-    'cat' : returned,
-    'tit': 'RMAs by components',
-    'xaxis_tit' : 'components',
+    'cat' : 'rad_part',
+    'tit': 'RMAs by Components',
+    'xaxis_tit' : 'Components',
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
 }
-# df = sql.read_table('RMA', date_from, date_upto, ret_cat=[returned])
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['rad_part'])
 # dp.by_category(df, **options)
 
-##  Non Repairable units
-returned = 'repair_types'
+##  Non Repairable
+## Show me all ???  where 'repair_types' is 'Non Repairable'
+## ??? Show me when 'repair_types' is 'Non Repairable'
+### Show me when 'nff' were sent where  'customers_name' is BYNET
 options = {
-    'cat' : returned,
-    'tit': 'Non Repairable units',
+    'cat' : 'repair_types',
+    'tit': 'Non Repairable',
     'xaxis_tit' : 'Non Repairable',
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
 }
-# df = sql.read_table('RMA', date_from, date_upto, ret_cat=[returned], cat='repair_types', cat_val='Non Repairable')
-# dp.by_category(df, **options)
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['repair_types'], cat='repair_types', cat_val='Non Repairable')
+# # dp.by_category(df, **options)
 # dp.by_cat_day(df, **options)
 
 ##  Non Repairable units per customer
+## Show me all 'customer_names' where 'repair_types' is 'Non Repairable'
 # returned = 'repair_types'
 options = {
     'cat' : 'customers_name',
     'tit': 'Non Repairable units per customer',
-    'xaxis_tit' : 'Non Repairable',
+    'xaxis_tit' : 'Customer',
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
 }
@@ -396,11 +413,11 @@ options = {
 # dp.by_category(df, **options)
 
 ##  Non Repairable units per "catalog"
-# returned = 'repair_types'
+## Show me all 'catalog' where 'repair_types' is 'Non Repairable'
 options = {
     'cat' : 'catalog',
     'tit': 'Non Repairable units per catalog',
-    'xaxis_tit' : 'Non Repairable',
+    'xaxis_tit' : 'Catalog',
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
 }
@@ -408,9 +425,8 @@ options = {
 # dp.by_category(df, **options)
 
 
-
 ## which location (reference) is problematic in product_line ETX-203AX
-returned = 'product_line'
+## Show me all location where 'product_line' is ETX-203AX
 options = {
     'cat' : 'location',
     'tit': 'RMAs by Reference of ETX-203AX',
