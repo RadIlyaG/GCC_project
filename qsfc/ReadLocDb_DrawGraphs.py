@@ -4,8 +4,8 @@ from Graphs import DrawPlot
 from utils import lib_gen
 
 gen = lib_gen.FormatDates()
-date_from = gen.format_date_to_uso('11/03/2024')
-date_upto = gen.format_date_to_uso('12/04/2025', last_sec=True)
+date_from = gen.format_date_to_uso('13/06/2024')
+date_upto = gen.format_date_to_uso('31/05/2025', last_sec=True)
 sql = SqliteDB()
 #df = sql.read_table('RMA', date_from, date_upto)
 # for v in df:
@@ -318,9 +318,9 @@ options = {
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
 }
-df = sql.read_table('RMA', date_from, date_upto, ret_cat=['doa'], cat='customers_name', cat_val='CANCOM GMBH',cat2='doa', cat2_val='1')
-# dp.by_category(df, **options)
-dp.by_cat_day(df, **options)
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['doa'], cat='customers_name', cat_val='CANCOM GMBH',cat2='doa', cat2_val='1')
+# # # dp.by_category(df, **options)
+# dp.by_cat_day(df, **options)
 
 ## Show me all 'doa'  where 'customers_name' is CANCOM GMBH
 options = {
@@ -330,8 +330,8 @@ options = {
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
 }
-df = sql.read_table('RMA', date_from, date_upto, ret_cat=['doa', 'catalog'], cat='customers_name', cat_val='CANCOM GMBH',cat2='doa', cat2_val='1')
-dp.by_category(df, **options)
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['doa', 'catalog'], cat='customers_name', cat_val='CANCOM GMBH',cat2='doa', cat2_val='1')
+# dp.by_category(df, **options)
 # dp.by_cat_day(df, **options)
 
 # NFF by customers_name Bynet
@@ -436,3 +436,201 @@ options = {
 }
 # df = sql.read_table('RMA', date_from, date_upto, ret_cat=['location'], cat='product_line', cat_val='ETX-203AX')
 # dp.by_category(df, **options)
+
+## 1. show me when and how many RMAs were opened
+options = {
+    'cat' : 'form_number',
+    'tit': 'Total RMAs',
+    'xaxis_tit' : 'RMAs',
+    'yaxis_tit' : 'Quantity',
+    'chart_type' : 'bar',
+}
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['form_number'])
+# # # dp.by_category(df, **options)
+# dp.by_cat_day(df, **options)
+
+## 2.1 Show me when and how many product_line=ETX-203AX were sent
+options = {
+    'cat' : 'product_line',
+    'tit': 'RMAs of ETX-203AX',
+    'xaxis_tit' : 'Reference',
+    'yaxis_tit' : 'Quantity',
+    'chart_type' : 'bar',
+}
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['product_line'], cat='product_line', cat_val=['ETX-203AX'])
+# # dp.by_category(df, **options)
+# dp.by_cat_day(df, **options)
+
+## 2.1 Show me when and how many product_line=ETX-2i-100G were sent
+options = {
+    'cat' : 'product_line',
+    'tit': 'RMAs of ETX-2i-100G',
+    'xaxis_tit' : 'Reference',
+    'yaxis_tit' : 'Quantity',
+    'chart_type' : 'bar',
+}
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['product_line'], cat='product_line', cat_val=['ETX-2i-100G'])
+# # dp.by_category(df, **options)
+# dp.by_cat_day(df, **options)
+
+## 2.2 Show me when and how many product_line=ETX-203AX and ETX-2i-100G were sent
+options = {
+    'cat' : 'product_line',
+    'tit': 'RMAs of ETX-203AX and ETX-2i-100G',
+    'xaxis_tit' : 'Reference',
+    'yaxis_tit' : 'Quantity',
+    'chart_type' : 'bar',
+    #'group_by': 'ddd'
+}
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['product_line'], cat='product_line', cat_val=['ETX-203AX', 'ETX-2i-100G'])
+# # dp.by_category(df, **options)
+# dp.by_cat_day(df, **options)
+
+# options = {
+#     'cat' : 'product_line',
+#     'tit': 'RMAss of ETX-203AX',
+#     'xaxis_tit' : 'Reference',
+#     'yaxis_tit' : 'Quantity',
+#     'chart_type' : 'bar',
+#     'group_by': 'week'
+# }
+# df = sql.read_table_with_aggrigation(
+#     'RMA', date_from, date_upto, ret_cat=['product_line'], cat='product_line', cat_val=['ETX-203AX', 'ETX-2i-100G'], group_by='week'
+# )
+# # dp.by_category(df, **options)
+# dp.by_cat_day(df, **options)
+
+
+## 4.1 Show me all 'product_line'
+options = {
+    'cat' : 'product_line',
+    'tit': 'RMAs by all Product Line',
+    'xaxis_tit' : 'Product Line',
+    'yaxis_tit' : 'Quantity',
+    'chart_type' : ['pie', 'bar'],
+    'excludes' : None,
+}
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['product_line'])
+# dp.by_category(df, **options)
+
+
+options = {
+    'cat' : 'product_line',
+    'tit': 'RMAs by Product Line',
+    'xaxis_tit' : 'Product Line',
+    'yaxis_tit' : 'Quantity',
+    'chart_type' : ['pie', 'bar'],
+    'excludes' : 'Component, SFP',
+}
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['product_line'], excludes=['Component', 'SFP'])
+# dp.by_category(df, **options)
+
+## 4.2 Show me all 'customers_name'
+options = {
+    'cat' : 'customers_name',
+    'tit': 'RMAs by Customer',
+    'xaxis_tit' : 'Customer',
+    'yaxis_tit' : 'Quantity',
+    'chart_type' : ['pie', 'bar'],
+}
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['customers_name'])
+# dp.by_category(df, **options)
+
+
+## 5.1 Show me all 'rad_part'
+options = {
+    'cat' : 'rad_part',
+    'tit': 'RMAs by rad_part',
+    'xaxis_tit' : 'rad_part',
+    'yaxis_tit' : 'Quantity',
+    'chart_type' : ['bar'],
+
+}
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['rad_part'])
+# dp.by_category(df, **options)
+
+## 5.2 Show me all 'rad_part' where 'product_line' is 'ETX-2i-10G'
+options = {
+    'cat' : 'rad_part',
+    'tit': 'RMAs by rad_part for product_line ETX-2i-10G',
+    'xaxis_tit' : 'rad_part',
+    'yaxis_tit' : 'Quantity',
+    'chart_type' : ['bar'],
+
+}
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['rad_part'], cat='product_line', cat_val='ETX-2i-10G')
+# dp.by_category(df, **options)
+
+## 5.3 Show me all 'date_code' where 'rad_part' is 'C-06030C226MATJ'
+options = {
+    'cat' : 'date_code',
+    'tit': 'RMAs by date_code for C-06030C226MATJ',
+    'xaxis_tit' : 'Date Codes',
+    'yaxis_tit' : 'Quantity',
+    'chart_type' : ['bar'],
+
+}
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['date_code'], cat='rad_part', cat_val='C-06030C226MATJ')
+# dp.by_category(df, **options)
+
+
+
+## 6.1 Show me all 'location'
+options = {
+    'cat' : 'location',
+    'tit': 'RMAs by References',
+    'xaxis_tit' : 'Reference',
+    'yaxis_tit' : 'Quantity',
+    'chart_type' : ['bar'],
+
+}
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['location'])
+# dp.by_category(df, **options)
+
+## 6.2 Show me all 'catalog' where 'location' is 'MH'
+options = {
+    'cat' : 'catalog',
+    'tit': 'RMAs by catalog for location MH',
+    'xaxis_tit' : 'catalog',
+    'yaxis_tit' : 'Quantity',
+    'chart_type' : ['bar'],
+
+}
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['catalog'], cat='location', cat_val='MH')
+# dp.by_category(df, **options)
+
+## 6.3 Show me all 'product_line' where 'location' is 'MH'
+options = {
+    'cat' : 'product_line',
+    'tit': 'RMAs by Product Line for Refference MH',
+    'xaxis_tit' : 'Product Line',
+    'yaxis_tit' : 'Quantity',
+    'chart_type' : ['bar'],
+
+}
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['product_line'], cat='location', cat_val='MH')
+# dp.by_category(df, **options)
+
+
+
+## 7.2.1 Show me all 'customers_name' which sent 'nff'
+options = {
+    'cat' : 'customers_name',
+    'tit': 'NFF by customer',
+    'xaxis_tit' : 'Customer',
+    'yaxis_tit' : 'Quantity',
+    'chart_type' : ['bar', 'pie'],
+}
+df = sql.read_table('RMA', date_from, date_upto, ret_cat=['customers_name'], cat='nff', cat_val='1')
+dp.by_category(df, **options)
+
+## 7.2.2 Show me all 'catalog' which sent 'nff'
+options = {
+    'cat' : 'catalog',
+    'tit': 'NFF by Catalog',
+    'xaxis_tit' : 'Catalog',
+    'yaxis_tit' : 'Quantity',
+    'chart_type' : ['bar'],
+}
+df = sql.read_table('RMA', date_from, date_upto, ret_cat=['catalog'], cat='nff', cat_val='1')
+dp.by_category(df, **options)

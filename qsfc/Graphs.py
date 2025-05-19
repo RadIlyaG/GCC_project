@@ -10,11 +10,22 @@ class DrawPlot:
         self.title_date_format = '%d %b %Y'
         self.strptime_format = "%Y-%m-%d %H:%M:%S.%f"
 
-    def parse_date_from_str_into_datetime(self):
+    def parse_date_from_str_into_datetime(self, group_by=None):
+        if group_by == 'day':
+            check_val = 'day'
+        elif group_by == 'week':
+            check_val = 'week'
+        else:
+            check_val = 'open_date'
         for row in self.data:
-            if isinstance(row['open_date'], str):
+            if isinstance(row[check_val], str):
                 #print('1', row['open_date'], type(row['open_date']))
-                row['open_date'] = datetime.strptime(row['open_date'], self.strptime_format)
+                if group_by == 'day':
+                    row['day'] = datetime.strptime(row['day'], '%Y-%m-%d')
+                elif group_by == 'week':
+                     row['week'] = datetime.strptime(row['week'], '%Y-%m-%d')
+                else:
+                    row['open_date'] = datetime.strptime(row['open_date'], self.strptime_format)
                 #print('2', row['open_date'], type(row['open_date']))
 
     def by_day(self, data):
@@ -354,16 +365,19 @@ class DrawPlot:
             titl = f"{tit} {date_from.strftime(self.title_date_format)} — {date_to.strftime(self.title_date_format)}"
         else:
             titl = f"{tit} {date_from.strftime(self.title_date_format)}"
+        titl += f'\t\tTotal: {summ}'
+        if 'excludes' in kwargs and kwargs['excludes'] is not None:
+            titl += f"<br><sup>Excluded:{kwargs['excludes']}</sup>"
 
         figures = {}
 
         fig_bar = go.Figure(go.Bar(x=names, y=counts, orientation='v', text=counts))
         figures['bar'] = fig_bar
-        fig_bar.update_layout(title=f'{titl},\t\tTotal: {summ}',
+        fig_bar.update_layout(title=f'{titl}',
                           xaxis_title=xaxis_tit,
                           yaxis_title=yaxis_tit)
         #fig.show()
-        pio.write_html(fig_bar, file=f'c:/temp/{tit}.bar.html', auto_open=True)
+        #pio.write_html(fig_bar, file=f'c:/temp/{tit}.bar.html', auto_open=True)
 
         customer_counts = Counter(row[kwargs['cat']] for row in self.data)
         #print('customer_counts', customer_counts)
@@ -374,13 +388,20 @@ class DrawPlot:
         ])
         figures['pie'] = fig_pie
 
-        fig_pie.update_layout(title=f'{titl},\t\tTotal: {summ}')
+        fig_pie.update_layout(title=f'{titl}')
         #fig.show()
-        pio.write_html(fig_pie, file=f'c:/temp/{tit}.pie.html', auto_open=True)
+        #pio.write_html(fig_pie, file=f'c:/temp/{tit}.pie.html', auto_open=True)
 
+        return_charts = []
         if 'chart_type' in kwargs:
             print (kwargs['chart_type'])
-            return figures[kwargs['chart_type']]
+            if 'bar' in kwargs['chart_type']:
+                pio.write_html(fig_bar, file=f'c:/temp/{tit}.bar.html', auto_open=True)
+                return_charts += fig_bar
+            if 'pie' in kwargs['chart_type']:
+                pio.write_html(fig_pie, file=f'c:/temp/{tit}.pie.html', auto_open=True)
+                return_charts += fig_pie
+            return return_charts
         else:
             return fig_bar
 
@@ -453,16 +474,23 @@ class DrawPlot:
     def by_cat_day(self, data, **kwargs):
         self.data = data
         print('kwargs: ', kwargs)
+        print('data: ', data)
 
         # Parse str into datetime
-        self.parse_date_from_str_into_datetime()
+        if 'group_by' not in kwargs:
+            kwargs['group_by'] = 'stam'
+        self.parse_date_from_str_into_datetime(kwargs['group_by'])
 
         # Grouping: (date, name) → counter
         daily_counts = defaultdict(int)
         # for row in filtered_data:
         #     pass
         for row in data:
-            date = row['open_date'].date()
+            #date = row['open_date'].date()
+            if kwargs['group_by']=='week' or kwargs['group_by']=='day':
+                date = row[kwargs['group_by']].date()
+            else:
+                date = row['open_date'].date()
             name = row[kwargs['cat']]  #  'customers_full_name'
             daily_counts[(date, name)] += 1
 
@@ -471,8 +499,13 @@ class DrawPlot:
         for (date, name), count in daily_counts.items():
             cat_day_map[name][date] = count
 
+        #print('\ncat_day_map: ', cat_day_map.items())
         # Take dates(axis X)
-        all_dates = sorted({row['open_date'].date() for row in data})
+        #
+        if kwargs['group_by'] == 'week' or kwargs['group_by'] == 'day':
+            all_dates = sorted({row[kwargs['group_by']].date() for row in data})
+        else:
+            all_dates = sorted({row['open_date'].date() for row in data})
         date_from = min(all_dates)
         date_to = max(all_dates)
         # Build graph
