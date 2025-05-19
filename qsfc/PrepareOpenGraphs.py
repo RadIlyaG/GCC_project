@@ -305,7 +305,7 @@ class InfoFrame(tk.Frame):
         self.fr_graph_details = ttk.Frame(self, borderwidth=0, relief="flat")
         self.var_res_lab = tk.StringVar()
         self.res_lab = ttk.Label(self.fr_graph_details, text='')
-        self.but_crt_grph = ttk.Button(self.fr_graph_details, text='Create Graph!', command= lambda: self.create_graph())
+        self.but_crt_grph = ttk.Button(self.fr_graph_details, text='Create Graph', command= lambda: self.create_graph())
         self.but_save_grph = ttk.Button(self.fr_graph_details, text='Save the Graph', command=lambda: self.save_graph())
 
         self.lab_type.grid(row=0, column=0, sticky='w', padx=2, pady=2)
@@ -406,13 +406,15 @@ class InfoFrame(tk.Frame):
 
     def save_graph(self):
         init_dir = self.mainapp.gaSet['host_fld']
-        fname = ''
+        fname = ""
         fname = asksaveasfilename(initialdir=init_dir,
                                 title="Open file okay?",
                                 filetypes=(("text files", "*.py"),
                                            ("all files", "*.*"))
                                 )
-        print(fname)
+        print(f'fname: <{fname}>')
+        if fname is None or fname=="" :
+            return None
 
         date_from = gen.format_date_to_uso('11/03/2024')
         date_upto = gen.format_date_to_uso('12/04/2025', last_sec=True)
