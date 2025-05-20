@@ -295,20 +295,91 @@ class InfoFrame(tk.Frame):
         #self.fr_dates = ttk.LabelFrame(self, borderwidth=2, relief="groove", text="Open Form Date")
         #self.date_from = ttk.Label(self.fr_dates)
 
-        self.lab_cats  = ttk.Label(self, text='')
-        self.var_cats = tk.StringVar()
-        #self.cb_cats = tk.Combobox(self,  width=25)
-        #self.cb_cats.bind("<<ComboboxSelected>>", self.fill_res_lab)
-        self.cb_cats = TtkMultiSelectCombobox(self)
-        self.cb_cats.listbox.bind("<<ListboxSelect>>", self.fill_res_lab, add="+")
-        self.cb_subcats = TtkMultiSelectCombobox(self)  # ttk.Combobox(self, width=35)
-        ## subcat shouldn't refresh self.cb_subcats.bind("<<ComboboxSelected>>", self.fill_res_lab)
+        self.fr_graph_details = ttk.LabelFrame(self, borderwidth=2, relief="groove", text="")
+        co = 0
+        ro = 0
+        self.lab_show_me = ttk.Label(self.fr_graph_details, text='Show me')
+        self.lab_show_me.grid(row=ro, column=co, sticky='w')
+        co += 1
+        self.cb_show_me_what = TtkMultiSelectCombobox(self.fr_graph_details)
+        self.cb_show_me_what.listbox.config(selectmode="single", height=3)
+        self.cb_show_me_what.entry.config(width=5)
+        self.cb_show_me_what.set_values(['all', 'when'])
+        self.cb_show_me_what.grid(row=ro, column=co, sticky='e', padx=2, pady=2)
+        co += 1
+        self.cb_ret_cat = TtkMultiSelectCombobox(self.fr_graph_details)
+        self.cb_ret_cat.entry.config(width=25)
+        self.cb_ret_cat.grid(row=ro, column=co, sticky='e', padx=2, pady=2)
 
-        self.fr_graph_details = ttk.Frame(self, borderwidth=0, relief="flat")
+        co = 0 ; ro += 1
+        self.lab_where = ttk.Label(self.fr_graph_details, text='where')
+        self.lab_where.grid(row=ro, column=co, sticky='w')
+
+        co = 0 ; ro += 1
+        self.lab_cats  = ttk.Label(self.fr_graph_details, text='')
+        self.var_cats = tk.StringVar()
+        self.cb_cats = TtkMultiSelectCombobox(self.fr_graph_details )
+        self.cb_cats.listbox.bind("<<ListboxSelect>>", self.fill_res_lab, add="+")
+        #self.cb_cats.entry.config(width=25)
+        self.cb_cats.grid(row=ro, column=co, columnspan=1, sticky='ew', padx=2, pady=2)
+
+        co += 1
+        self.lab_ret_val_valus = ttk.Label(self.fr_graph_details, text='equal to')
+        self.lab_ret_val_valus.grid(row=ro, column=co, sticky='w')
+        co += 1
+        self.cb_subcats = TtkMultiSelectCombobox(self.fr_graph_details)  # ttk.Combobox(self, width=35)
+        #self.cb_subcats.entry.config(width=25)
+        self.cb_subcats.grid(row=ro, column=co, columnspan=1, sticky='ew', padx=2, pady=2)
+
+        co = 0
+        ro += 1
+        self.lab_and = ttk.Label(self.fr_graph_details, text='and')
+        self.lab_and.grid(row=ro, column=co, sticky='w')
+
+        co = 0
+        ro += 1
+        self.cb_cats2 = TtkMultiSelectCombobox(self.fr_graph_details)
+        self.cb_cats2.listbox.bind("<<ListboxSelect>>", self.fill_res_lab, add="+")
+        # self.cb_cats.entry.config(width=25)
+        self.cb_cats2.grid(row=ro, column=co, columnspan=1, sticky='ew', padx=2, pady=2)
+
+        co += 1
+        self.lab_subcats2 = ttk.Label(self.fr_graph_details, text='equal to')
+        self.lab_subcats2.grid(row=ro, column=co, sticky='w')
+        co += 1
+        self.cb_subcats2 = TtkMultiSelectCombobox(self.fr_graph_details)  # ttk.Combobox(self, width=35)
+        # self.cb_subcats2.entry.config(width=25)
+        self.cb_subcats2.grid(row=ro, column=co, columnspan=1, sticky='ew', padx=2, pady=2)
+
+        co = 0
+        ro += 1
+        self.lab_gr_tit = ttk.Label(self.fr_graph_details, text='Graph Title')
+        self.lab_gr_tit.grid(row=ro, column=co, sticky='w')
+        co += 1
+        self.ent_gr_tit = ttk.Entry(self.fr_graph_details)
+        self.ent_gr_tit.grid(row=ro, column=co, columnspan=2, sticky='ew', padx=2, pady=2)
+
+        co = 0
+        ro += 1
+        self.lab_gr_xaxis_tit = ttk.Label(self.fr_graph_details, text='X axis Title')
+        self.lab_gr_xaxis_tit.grid(row=ro, column=co, sticky='w')
+        co += 1
+        self.ent_gr_xaxis_tit = ttk.Entry(self.fr_graph_details)
+        self.ent_gr_xaxis_tit.grid(row=ro, column=co, columnspan=2, sticky='ew', padx=2, pady=2)
+
+        co = 0
+        ro += 1
+        self.lab_gr_yaxis_tit = ttk.Label(self.fr_graph_details, text='Y axis Title')
+        self.lab_gr_yaxis_tit.grid(row=ro, column=co, sticky='w')
+        co += 1
+        self.ent_gr_yaxis_tit = ttk.Entry(self.fr_graph_details)
+        self.ent_gr_yaxis_tit.grid(row=ro, column=co, columnspan=2, sticky='ew', padx=2, pady=2)
+
+        self.fr_buttons = ttk.Frame(self, borderwidth=0, relief="flat")
         self.var_res_lab = tk.StringVar()
-        self.res_lab = ttk.Label(self.fr_graph_details, text='')
-        self.but_crt_grph = ttk.Button(self.fr_graph_details, text='Create Graph', command= lambda: self.create_graph())
-        self.but_save_grph = ttk.Button(self.fr_graph_details, text='Save the Graph', command=lambda: self.save_graph())
+        self.res_lab = ttk.Label(self.fr_buttons, text='')
+        self.but_crt_grph = ttk.Button(self.fr_buttons, text='Create Graph', command= lambda: self.create_graph())
+        self.but_save_grph = ttk.Button(self.fr_buttons, text='Save the Graph', command=lambda: self.save_graph())
 
         self.lab_type.grid(row=0, column=0, sticky='w', padx=2, pady=2)
         self.lab_dates.grid(row=1, column=0, sticky='w', padx=2, pady=2, columnspan=2)
@@ -319,21 +390,18 @@ class InfoFrame(tk.Frame):
         self.lab_date_from.grid(row=2, column=1, sticky='w', padx=2, pady=2)
         self.lab_date_upto.grid(row=2, column=2, sticky='w', padx=2, pady=2)
 
-        self.lab_cats.grid(row=3, column=0, sticky='w', padx=2, pady=2)
-        self.cb_cats.grid(row=3, column=1, sticky='w', padx=2, pady=2)
-        self.cb_subcats.grid(row=4, column=1, sticky='w', padx=2, pady=2)
+        #self.lab_cats.grid(row=3, column=0, sticky='w', padx=2, pady=2)
 
-        self.fr_graph_details.grid(columnspan=2)
+
+
+        self.fr_graph_details.grid(columnspan=2, sticky='snwe', padx=2, pady=2)
+        self.fr_buttons.grid(columnspan=2, sticky='snwe', padx=2, pady=2)
         self.res_lab.grid()
         self.but_crt_grph.grid()
         self.but_save_grph.grid()
 
     def fill_res_lab(self, *event):
         #print (f'fill_res_lab self:<{self}> , event:{event}')  # self.parent.info_frames:{self.parent.info_frames}
-
-
-
-
         #print(df_rma)
         txt = self.res_lab.cget("text")
         #rb_var_from_range = self.var_from_range.get()
@@ -364,38 +432,46 @@ class InfoFrame(tk.Frame):
         # self.lab_date_upto.set_date(today_date)
 
         #cat = self.cb_cats.get()
-        subs = []
-        unique_subs = []
-        selected = self.cb_cats.get_selected()
-        print(f'selected:<{selected}> lenselected:<{len(selected)}>')
-        if selected !=[]:
-            for cat in selected:
-                print(f'cat:<{cat}>, {type(cat)}')
-                # subcat = self.cb_subcats.get()
-                # print('res_lab: ', cat, subcat)
 
 
-                if self.lab_type.cget('text') == 'RMA':
-                    dframe = df_rma
-                else:
-                    dframe = df_pro
-                for row in dframe:
-                    # print(f'row:<row>, row[cat]:<row[cat]> {type(row[cat])}')
-                    if len(re.sub('[\.\-\s]+', '', row[cat])) > 0:
-                        row_open_date = datetime.strptime(row['open_date'], '%Y-%m-%d %H:%M:%S.%f').date()
-                        if row_open_date >= self.date_from and row_open_date<=self.date_upto:
-                            subs.append(row[cat])
-            unique_subs = sorted(list(set(subs)))
-            # self.cb_subcats.configure(values=unique_subs)
-            # self.cb_subcats.set(unique_subs[0])
+        def fill_cat_su_cat(par_w, sub_par_w):
+            subs = []
+            unique_subs = []
+            selected = par_w.get_selected()
+            print(f'selected:<{selected}> lenselected:<{len(selected)}>')
+            if selected !=[]:
+                for cat in selected:
+                    print(f'cat:<{cat}>, {type(cat)}')
+                    # subcat = self.cb_subcats.get()
+                    # print('res_lab: ', cat, subcat)
+                    if self.lab_type.cget('text') == 'RMA':
+                        dframe = df_rma
+                    else:
+                        dframe = df_pro
+                    for row in dframe:
+                        # print(f'row:<row>, row[cat]:<row[cat]> {type(row[cat])}')
+                        if len(re.sub('[\.\-\s]+', '', row[cat])) > 0:
+                            row_open_date = datetime.strptime(row['open_date'], '%Y-%m-%d %H:%M:%S.%f').date()
+                            if row_open_date >= self.date_from and row_open_date<=self.date_upto:
+                                subs.append(row[cat])
+                unique_subs = sorted(list(set(subs)))
+                # self.cb_subcats.configure(values=unique_subs)
+                # self.cb_subcats.set(unique_subs[0])
 
-            self.cb_subcats.set_values(unique_subs)
-            self.cb_subcats.entry_var.set(unique_subs[0])
-        else:
-            self.cb_subcats.set_values([])
-            self.cb_subcats.entry_var.set('')
+                sub_par_w.set_values(unique_subs)
+                sub_par_w.entry_var.set(unique_subs[0])
+            else:
+                sub_par_w.set_values([])
+                sub_par_w.entry_var.set('')
 
-        print('unique_subs: ', type(unique_subs), unique_subs)
+            print('unique_subs: ', type(unique_subs), unique_subs)
+
+        par_w = self.cb_cats
+        sub_par_w = self.cb_subcats
+        fill_cat_su_cat(par_w, sub_par_w)
+        par_w = self.cb_cats2
+        sub_par_w = self.cb_subcats2
+        fill_cat_su_cat(par_w, sub_par_w)
 
         #self.res_lab["text"] = f'{self.frame_name} {date_from_string} {today_date_string} {self.cb_cats.get()}'
 
@@ -411,8 +487,27 @@ class InfoFrame(tk.Frame):
         #lgen = lib_gen.Gen()
         lib_gen.Gen.save_init(self, self.mainapp, **options)
 
+    def get_db_gr_opts(self):
+        self.db_opts = {}
+        self.db_opts['tbl_name'] = self.frame_name[0:4]
+
+        self.db_opts['last_y_m'] = self.var_from_range.get()
+        self.db_opts['date_from'] = self.lab_date_from.get_date()
+        self.db_opts['date_upto'] = self.lab_date_upto.get_date()
+
+        self.db_opts['show_me_what'] = self.cb_show_me_what.entry.get()
+        self.db_opts['ret_cat'] = self.cb_ret_cat.entry.get()
+        self.db_opts['cat'] = self.cb_cats.entry.get()
+        self.db_opts['subcat'] = self.cb_subcats.entry.get()
+        self.db_opts['cat2'] = self.cb_cats2.entry.get()
+        self.db_opts['subcat2'] = self.cb_subcats2.entry.get()
+
+        print(self.db_opts)
+
     def create_graph(self):
         print('Button CreateGraph', 'res_lab: ', self.res_lab.cget("text"))
+        self.get_db_gr_opts()
+        return
         self.fill_res_lab()
         #date_from = self.lab_date_from.get_date()
         #date_upto = self.lab_date_upto.get_date()
@@ -420,7 +515,7 @@ class InfoFrame(tk.Frame):
         #df = sql.read_table(self.frame_name[0:4], self.date_from, self.date_upto)
         dp = DrawPlot()
 
-        cat = self.cb_cats.get_selected()[0]
+        cat = self.cb_ret_cat.get_selected()[0]
         # dp.by_string(df, self.cb_cats.get(), f'{self.frame_name}s by {self.cb_cats.get()}', 'Quantity', self.cb_cats.get().capitalize())
         # dp.by_string(df, cat, f'{self.frame_name}s by {cat}', 'Quantity', cat.capitalize())
         options = {
@@ -707,10 +802,13 @@ class TtkMultiSelectCombobox(ttk.Frame):
 
     def update_selection(self, event=None):
         selected_indices = self.listbox.curselection()
-        print(f'update_selection selected_indices:<{selected_indices}>')
+        # print(f'update_selection selected_indices:<{selected_indices}>')
         self.selected = [self.values[i] for i in selected_indices]
-        print(f'update_selection selected:<{self.selected}>')
+        # print(f'update_selection selected:<{self.selected}>')
         self.entry_var.set(", ".join(self.selected))
+
+        if self.listbox.cget("selectmode") == "single":
+            self.hide_dropdown()
 
     def get_selected(self):
         return self.selected
@@ -762,10 +860,12 @@ if __name__ == '__main__':
     print(f'maint cats:<{cats}>')
     # #app.main_frame.frame_info_rma.cb_cats.configure(values=cats)
     for cat in cats:
+        app.main_frame.frame_info_rma.cb_ret_cat.insert(tk.END, cat)
         app.main_frame.frame_info_rma.cb_cats.insert(tk.END, cat)
+        app.main_frame.frame_info_rma.cb_cats2.insert(tk.END, cat)
         #app.main_frame.frame_info_rma.cb_cats.values.append(cat)
 
-    print(f'maint cb_cats values:<{app.main_frame.frame_info_rma.cb_cats.values}>')
+    print(f'maint cb_cats values:<{app.main_frame.frame_info_rma.cb_ret_cat.values}>')
     #app.main_frame.frame_info_rma.var_cats.set(cats[0])
 
 
@@ -782,10 +882,10 @@ if __name__ == '__main__':
 
     cats = sorted(df_pro[0].keys())
     for cat in cats:
-        app.main_frame.frame_info_pro.cb_cats.insert(tk.END, cat)
+        app.main_frame.frame_info_pro.cb_ret_cat.insert(tk.END, cat)
         #app.main_frame.frame_info_pro.cb_cats.values.append(cat)
-    app.main_frame.frame_info_pro.cb_cats.configure(height = 6)
-    app.main_frame.frame_info_pro.var_cats.set(cats[0])
+    app.main_frame.frame_info_pro.cb_ret_cat.configure(height = 6)
+    #app.main_frame.frame_info_pro.var_cats.set(cats[0])
 
     app.status_bar_frame.status("")
     app.mainloop()
