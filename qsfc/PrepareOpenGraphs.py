@@ -297,9 +297,11 @@ class InfoFrame(tk.Frame):
 
         self.lab_cats  = ttk.Label(self, text='')
         self.var_cats = tk.StringVar()
-        self.cb_cats = ttk.Combobox(self,  width=25, textvariable=self.var_cats)
-        self.cb_cats.bind("<<ComboboxSelected>>", self.fill_res_lab)
-        self.cb_subcats = ttk.Combobox(self, width=35)
+        #self.cb_cats = tk.Combobox(self,  width=25)
+        #self.cb_cats.bind("<<ComboboxSelected>>", self.fill_res_lab)
+        self.cb_cats = TtkMultiSelectCombobox(self)
+        self.cb_cats.listbox.bind("<<ListboxSelect>>", self.fill_res_lab, add="+")
+        self.cb_subcats = TtkMultiSelectCombobox(self)  # ttk.Combobox(self, width=35)
         ## subcat shouldn't refresh self.cb_subcats.bind("<<ComboboxSelected>>", self.fill_res_lab)
 
         self.fr_graph_details = ttk.Frame(self, borderwidth=0, relief="flat")
@@ -361,24 +363,39 @@ class InfoFrame(tk.Frame):
         # self.lab_date_from.set_date(date_from)
         # self.lab_date_upto.set_date(today_date)
 
-        cat = self.cb_cats.get()
-        subcat = self.cb_subcats.get()
-        print('res_lab: ', cat, subcat)
-
+        #cat = self.cb_cats.get()
         subs = []
-        if self.lab_type.cget('text') == 'RMA':
-            dframe = df_rma
+        unique_subs = []
+        selected = self.cb_cats.get_selected()
+        print(f'selected:<{selected}> lenselected:<{len(selected)}>')
+        if selected !=[]:
+            for cat in selected:
+                print(f'cat:<{cat}>, {type(cat)}')
+                # subcat = self.cb_subcats.get()
+                # print('res_lab: ', cat, subcat)
+
+
+                if self.lab_type.cget('text') == 'RMA':
+                    dframe = df_rma
+                else:
+                    dframe = df_pro
+                for row in dframe:
+                    # print(f'row:<row>, row[cat]:<row[cat]> {type(row[cat])}')
+                    if len(re.sub('[\.\-\s]+', '', row[cat])) > 0:
+                        row_open_date = datetime.strptime(row['open_date'], '%Y-%m-%d %H:%M:%S.%f').date()
+                        if row_open_date >= self.date_from and row_open_date<=self.date_upto:
+                            subs.append(row[cat])
+            unique_subs = sorted(list(set(subs)))
+            # self.cb_subcats.configure(values=unique_subs)
+            # self.cb_subcats.set(unique_subs[0])
+
+            self.cb_subcats.set_values(unique_subs)
+            self.cb_subcats.entry_var.set(unique_subs[0])
         else:
-            dframe = df_pro
-        for row in dframe:
-            if len(re.sub('[\.\-\s]+', '', row[cat])) > 0:
-                row_open_date = datetime.strptime(row['open_date'], '%Y-%m-%d %H:%M:%S.%f').date()
-                if row_open_date >= self.date_from and row_open_date<=self.date_upto:
-                    subs.append(row[cat])
-        unique_subs = sorted(list(set(subs)))
-        print('unique_subs: ', cat, type(unique_subs), unique_subs)
-        self.cb_subcats.configure(values=unique_subs)
-        self.cb_subcats.set(unique_subs[0])
+            self.cb_subcats.set_values([])
+            self.cb_subcats.entry_var.set('')
+
+        print('unique_subs: ', type(unique_subs), unique_subs)
 
         #self.res_lab["text"] = f'{self.frame_name} {date_from_string} {today_date_string} {self.cb_cats.get()}'
 
@@ -400,9 +417,21 @@ class InfoFrame(tk.Frame):
         #date_from = self.lab_date_from.get_date()
         #date_upto = self.lab_date_upto.get_date()
         sql = SqliteDB()
-        df = sql.read_table(self.frame_name[0:4], self.date_from, self.date_upto)
+        #df = sql.read_table(self.frame_name[0:4], self.date_from, self.date_upto)
         dp = DrawPlot()
-        dp.by_string(df, self.cb_cats.get(), f'{self.frame_name}s by {self.cb_cats.get()}', 'Quantity', self.cb_cats.get().capitalize())
+
+        cat = self.cb_cats.get_selected()[0]
+        # dp.by_string(df, self.cb_cats.get(), f'{self.frame_name}s by {self.cb_cats.get()}', 'Quantity', self.cb_cats.get().capitalize())
+        # dp.by_string(df, cat, f'{self.frame_name}s by {cat}', 'Quantity', cat.capitalize())
+        options = {
+            'cat': 'catalog',
+            'tit': 'RMAs by Catalog',
+            'xaxis_tit': 'Catalog',
+            'yaxis_tit': 'Quantity',
+            'chart_type': 'bar',
+        }
+        df = sql.read_table(self.frame_name[0:4], date_from, date_upto, ret_cat=['catalog'])
+        dp.by_category(df, **options)
 
     def save_graph(self):
         init_dir = self.mainapp.gaSet['host_fld']
@@ -471,7 +500,6 @@ class InfoFrame(tk.Frame):
         if include_extra:
             lines += [
                 "",
-                "# Сохранить график в файл (нужен kaleido)",
                 'dp.fig.write_image("output_plot.png")',
             ]
 
@@ -566,6 +594,140 @@ class StatusBarFrame(tk.Frame):
         self.label3.update_idletasks()
 
 
+class TtkMultiSelectCombobox(ttk.Frame):
+    def __init__(self, master=None, values=None, **kwargs):
+        super().__init__(master, **kwargs)
+        self.values = values or []
+        self.selected = []
+        style = ttk.Style()
+        combo_bg = style.lookup('TCombobox', 'fieldbackground', default='white')
+
+        self.entry_var = tk.StringVar()
+
+        self.input_frame = ttk.Frame(self, relief='groove', borderwidth=2)
+        self.input_frame.pack(fill="x", ipady=0)
+
+        small_font = ("Segoe UI", 8)
+        #self.entry = ttk.Entry(self.input_frame, textvariable=self.entry_var, state="readonly")
+        self.entry = tk.Entry(
+            self.input_frame,
+            textvariable=self.entry_var,
+            state="readonly",
+            relief="flat",
+            background=combo_bg,
+            disabledbackground=combo_bg,
+            font=small_font,
+        )
+        self.entry.grid(row=0, column=0, sticky="ew", ipady=0, padx=0, pady=0)
+        self.entry.bind("<Button-1>", self.toggle_dropdown)
+
+        # Arrow button
+        #self.arrow_btn = ttk.Button(self.input_frame, text="\u2228", width=2, command=self.toggle_dropdown, padding=(0, 0))  # text="▼"
+        self.arrow_btn = tk.Button(
+            self.input_frame,
+            text="\u2228",
+            command=self.toggle_dropdown,
+            relief="flat",
+            background=combo_bg,
+            activebackground=combo_bg,
+            borderwidth=0,
+            font=small_font,
+        )
+        self.arrow_btn.grid(row=0, column=1, sticky="ns", ipady=0, padx=0, pady=0)
+
+        self.input_frame.columnconfigure(0, weight=1)  # растягиваем Entry
+
+        self.dropdown_visible = False
+
+        # # Dropdown frame
+        self.dropdown_frame = ttk.Frame(self, borderwidth=1, relief="solid", style="TCombobox",)
+
+        #style.theme_use('default')
+
+        self.listbox = tk.Listbox(
+            self.dropdown_frame,
+            selectmode="multiple",
+            exportselection=False,
+            activestyle="none",
+            height=6, # min(6, len(values))
+            borderwidth=0,
+            relief="flat",
+            highlightthickness=0,
+            background=style.lookup('TCombobox', 'fieldbackground', default='white'),
+            foreground=style.lookup('TCombobox', 'foreground', default='black'),
+            #selectbackground=style.lookup('TCombobox', 'selectbackground', default='#0A64A4'),
+            #selectforeground=style.lookup('TCombobox', 'selectforeground', default='white'),
+            font=style.lookup('TCombobox', 'font', default="TkDefaultFont")
+        )
+        # for val in values:
+        #     self.listbox.insert(tk.END, val)
+        self.listbox.pack(side="left", fill="both", expand=True)
+
+        self.scrollbar = ttk.Scrollbar(self.dropdown_frame, orient="vertical", command=self.listbox.yview)
+        self.listbox.config(yscrollcommand=self.scrollbar.set)
+        self.scrollbar.pack(side="right", fill="y")
+
+        self.listbox.bind("<<ListboxSelect>>", self.update_selection)
+
+        # Закрытие по клику вне
+        #self.bind_all("<Button-1>", self.check_click_outside)
+        self.bind_all("<Button-1>", self.check_click_outside, add="+")
+
+    def toggle_dropdown(self, event=None):
+        if self.dropdown_visible:
+            self.hide_dropdown()
+        else:
+            self.show_dropdown()
+
+    def insert(self, index, value):
+        """Добавляет элемент в список."""
+        if index == "end" or index == tk.END:
+            self.values.append(value)
+        else:
+            self.values.insert(index, value)
+        self.listbox.insert(index, value)
+
+    def show_dropdown(self):
+        self.dropdown_frame.pack(fill="x")
+        self.dropdown_visible = True
+
+    def hide_dropdown(self):
+        self.dropdown_frame.pack_forget()
+        self.dropdown_visible = False
+
+    def check_click_outside(self, event):
+        widget = event.widget
+        widgets = [self.entry, self.listbox, self.scrollbar, self.dropdown_frame]
+        if any(widget is w or str(widget).startswith(str(w)) for w in widgets):
+            return
+
+        self.hide_dropdown()
+        # if widget not in (self.entry, self.listbox) and not str(widget).startswith(str(self.dropdown_frame)):
+        #     self.hide_dropdown()
+
+    def update_selection(self, event=None):
+        selected_indices = self.listbox.curselection()
+        print(f'update_selection selected_indices:<{selected_indices}>')
+        self.selected = [self.values[i] for i in selected_indices]
+        print(f'update_selection selected:<{self.selected}>')
+        self.entry_var.set(", ".join(self.selected))
+
+    def get_selected(self):
+        return self.selected
+
+    def set_values(self, values):
+        self.values = values
+        self.listbox.delete(0, tk.END)
+        for val in values:
+            self.listbox.insert(tk.END, val)
+
+
+
+    def add_value(self, value):
+        self.listbox.insert(tk.END, value)
+        self.values.append(value)
+
+
 if __name__ == '__main__':
 
     app = App()
@@ -595,9 +757,16 @@ if __name__ == '__main__':
     app.main_frame.frame_info_rma.lab_dates_fill(f"Data is available from {date_from} upto {date_upto}")
     #app.main_frame.frame_info_rma.lab_date_from.set_date(date_from)
     #app.main_frame.frame_info_rma.lab_date_upto.set_date(date_upto)
+
     cats = sorted(df_rma[0].keys())
-    app.main_frame.frame_info_rma.cb_cats.configure(values=cats)
-    app.main_frame.frame_info_rma.var_cats.set(cats[0])
+    print(f'maint cats:<{cats}>')
+    # #app.main_frame.frame_info_rma.cb_cats.configure(values=cats)
+    for cat in cats:
+        app.main_frame.frame_info_rma.cb_cats.insert(tk.END, cat)
+        #app.main_frame.frame_info_rma.cb_cats.values.append(cat)
+
+    print(f'maint cb_cats values:<{app.main_frame.frame_info_rma.cb_cats.values}>')
+    #app.main_frame.frame_info_rma.var_cats.set(cats[0])
 
 
     all_dates = sorted({row['open_date'] for row in df_pro})
@@ -610,8 +779,13 @@ if __name__ == '__main__':
     app.main_frame.frame_info_pro.lab_dates_fill(f"Data is available from {date_from} upto {date_upto}")
     #app.main_frame.frame_info_pro.lab_date_from.set_date(date_from)
     #app.main_frame.frame_info_pro.lab_date_upto.set_date(date_upto)
+
     cats = sorted(df_pro[0].keys())
-    app.main_frame.frame_info_pro.cb_cats.configure(values=cats)
+    for cat in cats:
+        app.main_frame.frame_info_pro.cb_cats.insert(tk.END, cat)
+        #app.main_frame.frame_info_pro.cb_cats.values.append(cat)
+    app.main_frame.frame_info_pro.cb_cats.configure(height = 6)
     app.main_frame.frame_info_pro.var_cats.set(cats[0])
+
     app.status_bar_frame.status("")
     app.mainloop()

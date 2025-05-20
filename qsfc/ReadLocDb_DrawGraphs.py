@@ -194,7 +194,7 @@ dp = DrawPlot()
 # }
 #dp.by_str_cat_subcat(df, **options)
 
-
+#############################################################################################
 
 
 # what kinds of failure_desc were shipped product_line ETX-203AX
@@ -546,8 +546,8 @@ options = {
     'chart_type' : ['bar'],
 
 }
-# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['rad_part'])
-# dp.by_category(df, **options)
+df = sql.read_table('RMA', date_from, date_upto, ret_cat=['rad_part'])
+dp.by_category(df, **options)
 
 ## 5.2 Show me all 'rad_part' where 'product_line' is 'ETX-2i-10G'
 options = {
@@ -621,8 +621,8 @@ options = {
     'yaxis_tit' : 'Quantity',
     'chart_type' : ['bar', 'pie'],
 }
-df = sql.read_table('RMA', date_from, date_upto, ret_cat=['customers_name'], cat='nff', cat_val='1')
-dp.by_category(df, **options)
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['customers_name'], cat='nff', cat_val='1')
+# dp.by_category(df, **options)
 
 ## 7.2.2 Show me all 'catalog' which sent 'nff'
 options = {
@@ -632,5 +632,5 @@ options = {
     'yaxis_tit' : 'Quantity',
     'chart_type' : ['bar'],
 }
-df = sql.read_table('RMA', date_from, date_upto, ret_cat=['catalog'], cat='nff', cat_val='1')
-dp.by_category(df, **options)
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['catalog'], cat='nff', cat_val='1')
+# dp.by_category(df, **options)
