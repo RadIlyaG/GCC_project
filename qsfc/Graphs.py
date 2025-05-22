@@ -328,6 +328,10 @@ class DrawPlot:
     def by_category(self, data, **kwargs):
         self.data = data
         print('kwargs: ', kwargs)
+        if len(data)==0:
+            print('data: ', data)
+            self.dialbox_nodate(**kwargs)
+            return
 
         for x in data[:10]:
             print(x)
@@ -471,10 +475,31 @@ class DrawPlot:
         ## not fine pio.write_html(fig_sca, file=f'c:/temp/{tit}.sca.html', auto_open=True)
         pio.write_html(fig_bar, file=f'c:/temp/{tit}.bar.html', auto_open=True)
 
+    def dialbox_nodate(self, **kwargs):
+        msg = f'No data for {kwargs["tit"]}'
+        print(msg)
+        from tkinter import messagebox
+        messagebox.showinfo("No data", msg)
+        # from utils.lib_DialogBox import DialogBox as dibox
+        # db_dict = {
+        #     "title": "No data",
+        #     "message": msg,
+        #     "type": ["OK"],
+        #     "icon": "::tk::icons::information",
+        #     'default': 0
+        #
+        # }
+        # dibox.create(db_dict)
+        # string, res_but, ent_dict = dibox.show()
+
+
     def by_cat_day(self, data, **kwargs):
         self.data = data
         print('kwargs: ', kwargs)
-        print('data: ', data)
+        if len(data)==0:
+            print('data: ', data)
+            self.dialbox_nodate(**kwargs)
+            return
 
         # Parse str into datetime
         if 'group_by' not in kwargs:

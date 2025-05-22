@@ -4,7 +4,7 @@ from Graphs import DrawPlot
 from utils import lib_gen
 
 gen = lib_gen.FormatDates()
-date_from = gen.format_date_to_uso('13/06/2024')
+date_from = gen.format_date_to_uso('13/06/2021')
 date_upto = gen.format_date_to_uso('31/05/2025', last_sec=True)
 sql = SqliteDB()
 #df = sql.read_table('RMA', date_from, date_upto)
@@ -308,6 +308,7 @@ options = {
 }
 # df = sql.read_table('RMA', date_from, date_upto, ret_cat=['customers_name'], cat='doa', cat_val='1')
 # dp.by_category(df, **options)
+# dp.by_cat_day(df, **options)
 
 # DOAs by customers_name CANCOM GMBH
 ## Show me when 'doa' were sent where 'customers_name' is CANCOM GMBH
@@ -330,9 +331,9 @@ options = {
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
 }
-# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['doa', 'catalog'], cat='customers_name', cat_val='CANCOM GMBH',cat2='doa', cat2_val='1')
-# dp.by_category(df, **options)
-# dp.by_cat_day(df, **options)
+df = sql.read_table('RMA', date_from, date_upto, ret_cat=['catalog', 'doa'], cat='customers_name', cat_val='CANCOM GMBH',cat2='doa', cat2_val='1')
+dp.by_category(df, **options)
+dp.by_cat_day(df, **options)
 
 # NFF by customers_name Bynet
 ## Show me all 'nff' where 'customers_name' is BYNET
@@ -482,9 +483,9 @@ options = {
     'chart_type' : 'bar',
     #'group_by': 'ddd'
 }
-# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['product_line'], cat='product_line', cat_val=['ETX-203AX', 'ETX-2i-100G'])
-# # dp.by_category(df, **options)
-# dp.by_cat_day(df, **options)
+df = sql.read_table('RMA', date_from, date_upto, ret_cat=['product_line'], cat='product_line', cat_val=['ETX-203AX', 'ETX-2i-100G'])
+# dp.by_category(df, **options)
+dp.by_cat_day(df, **options)
 
 # options = {
 #     'cat' : 'product_line',
@@ -546,8 +547,8 @@ options = {
     'chart_type' : ['bar'],
 
 }
-df = sql.read_table('RMA', date_from, date_upto, ret_cat=['rad_part'])
-dp.by_category(df, **options)
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['rad_part'])
+# dp.by_category(df, **options)
 
 ## 5.2 Show me all 'rad_part' where 'product_line' is 'ETX-2i-10G'
 options = {

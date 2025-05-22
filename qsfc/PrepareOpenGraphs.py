@@ -21,6 +21,7 @@ from functools import partial
 from datetime import date, timedelta, datetime
 import textwrap
 
+import utils.lib_DialogBox
 from Graphs import DrawPlot
 
 ##sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'utils')))
@@ -65,8 +66,8 @@ class App(tk.Tk):
         self.gaSet['root'] = self
         self.gaSet['host_fld'] = host_fld
         self.gaSet['temp_fld'] = temp_fld
-        #print('aaa', self.gaSet)
-        #self.if_rad_net()
+        # print('aaa', self.gaSet)
+        # self.if_rad_net()
 
         self.put_frames()
         self.put_menu()
@@ -99,7 +100,7 @@ class App(tk.Tk):
             "message": "Are you sure you want to close the application?",
             "type": ["Yes", "No"],
             "icon": "::tk::icons::question",
-            'default': 0
+            'default': 0,
         }
         dibox = dbox.DialogBox()
         dibox.create(self, db_dict)
@@ -309,16 +310,31 @@ class InfoFrame(tk.Frame):
         co += 1
         self.cb_ret_cat = TtkMultiSelectCombobox(self.fr_graph_details)
         self.cb_ret_cat.entry.config(width=25)
+        self.cb_ret_cat.listbox.bind("<<ListboxSelect>>", lambda e: (self.fill_res_lab(), self.fill_titles()), add="+")
         self.cb_ret_cat.grid(row=ro, column=co, sticky='e', padx=2, pady=2)
+
+        co = 0
+        ro += 1
+        self.lab_where = ttk.Label(self.fr_graph_details, text='Excluded:')
+        self.lab_where.grid(row=ro, column=co, sticky='w')
+
+        co += 1
+        self.cb_ret_cat_exclud = TtkMultiSelectCombobox(self.fr_graph_details)
+        self.cb_ret_cat_exclud.entry.config(width=25)
+        self.cb_ret_cat_exclud.grid(row=ro, column=co, columnspan=2, sticky='ew', padx=2, pady=2)
 
         co = 0 ; ro += 1
         self.lab_where = ttk.Label(self.fr_graph_details, text='where')
         self.lab_where.grid(row=ro, column=co, sticky='w')
 
+        """
+        cb_cats
+        """
         co = 0 ; ro += 1
         self.lab_cats  = ttk.Label(self.fr_graph_details, text='')
         self.var_cats = tk.StringVar()
-        self.cb_cats = TtkMultiSelectCombobox(self.fr_graph_details )
+        self.cb_cats = TtkMultiSelectCombobox(self.fr_graph_details)
+        # self.cb_cats.listbox.config(selectmode="single")
         self.cb_cats.listbox.bind("<<ListboxSelect>>", self.fill_res_lab, add="+")
         #self.cb_cats.entry.config(width=25)
         self.cb_cats.grid(row=ro, column=co, columnspan=1, sticky='ew', padx=2, pady=2)
@@ -328,9 +344,14 @@ class InfoFrame(tk.Frame):
         self.lab_ret_val_valus.grid(row=ro, column=co, sticky='w')
         co += 1
         self.cb_subcats = TtkMultiSelectCombobox(self.fr_graph_details)  # ttk.Combobox(self, width=35)
+        self.cb_subcats.listbox.bind("<<ListboxSelect>>", self.fill_titles, add="+")
         #self.cb_subcats.entry.config(width=25)
         self.cb_subcats.grid(row=ro, column=co, columnspan=1, sticky='ew', padx=2, pady=2)
 
+
+        """
+        cb_cats2
+        """
         co = 0
         ro += 1
         self.lab_and = ttk.Label(self.fr_graph_details, text='and')
@@ -340,6 +361,7 @@ class InfoFrame(tk.Frame):
         ro += 1
         self.cb_cats2 = TtkMultiSelectCombobox(self.fr_graph_details)
         self.cb_cats2.listbox.bind("<<ListboxSelect>>", self.fill_res_lab, add="+")
+        # self.cb_cats2.listbox.config(selectmode="single")
         # self.cb_cats.entry.config(width=25)
         self.cb_cats2.grid(row=ro, column=co, columnspan=1, sticky='ew', padx=2, pady=2)
 
@@ -373,7 +395,25 @@ class InfoFrame(tk.Frame):
         self.lab_gr_yaxis_tit.grid(row=ro, column=co, sticky='w')
         co += 1
         self.ent_gr_yaxis_tit = ttk.Entry(self.fr_graph_details)
+        self.ent_gr_yaxis_tit.insert(tk.END, 'Quantity')
         self.ent_gr_yaxis_tit.grid(row=ro, column=co, columnspan=2, sticky='ew', padx=2, pady=2)
+
+        """
+        chart_type
+        """
+        co = 0
+        ro += 1
+        self.lab_chart_type = ttk.Label(self.fr_graph_details, text='Chart Type')
+        self.lab_chart_type.grid(row=ro, column=co, sticky='w')
+
+        co += 1
+        self.cb_chart_type = TtkMultiSelectCombobox(self.fr_graph_details)
+        self.cb_chart_type.set_values(['bar', 'pie'])
+        self.cb_chart_type.listbox.config(height=3)
+        #self.cb_chart_type.listbox.bind("<<ListboxSelect>>", self.fill_res_lab, add="+")
+        # self.cb_cats2.listbox.config(selectmode="single")
+        # self.cb_cats.entry.config(width=25)
+        self.cb_chart_type.grid(row=ro, column=co, columnspan=1, sticky='ew', padx=2, pady=2)
 
         self.fr_buttons = ttk.Frame(self, borderwidth=0, relief="flat")
         self.var_res_lab = tk.StringVar()
@@ -401,7 +441,7 @@ class InfoFrame(tk.Frame):
         self.but_save_grph.grid()
 
     def fill_res_lab(self, *event):
-        #print (f'fill_res_lab self:<{self}> , event:{event}')  # self.parent.info_frames:{self.parent.info_frames}
+        print (f'fill_res_lab self:<{self}> , event:{event}')  # self.parent.info_frames:{self.parent.info_frames}
         #print(df_rma)
         txt = self.res_lab.cget("text")
         #rb_var_from_range = self.var_from_range.get()
@@ -449,29 +489,52 @@ class InfoFrame(tk.Frame):
                     else:
                         dframe = df_pro
                     for row in dframe:
-                        # print(f'row:<row>, row[cat]:<row[cat]> {type(row[cat])}')
+                        #print(f'row:<row>, row[cat]:<{row[cat]}> {type(row[cat])}')
                         if len(re.sub('[\.\-\s]+', '', row[cat])) > 0:
                             row_open_date = datetime.strptime(row['open_date'], '%Y-%m-%d %H:%M:%S.%f').date()
+                            #print(f'row_open_date:<{row_open_date}> self.date_from:<{self.date_from}>  self.date_upto:<{self.date_upto}>')
                             if row_open_date >= self.date_from and row_open_date<=self.date_upto:
                                 subs.append(row[cat])
                 unique_subs = sorted(list(set(subs)))
-                # self.cb_subcats.configure(values=unique_subs)
-                # self.cb_subcats.set(unique_subs[0])
+                print('unique_subs: ', type(unique_subs), unique_subs)
+                if len( unique_subs)>0:
+                    # self.cb_subcats.configure(values=unique_subs)
+                    # self.cb_subcats.set(unique_subs[0])
+                    sub_par_w.set_values(unique_subs)
+                    sub_par_w.entry_var.set(unique_subs[0])
+                else:
+                    dibox = dbox.DialogBox()
+                    db_dict = {
+                        "title": "No data",
+                        "message": f"No data for {selected}",
+                        "type": ["OK"],
+                        "icon": "::tk::icons::information",
+                        'default': 0
 
-                sub_par_w.set_values(unique_subs)
-                sub_par_w.entry_var.set(unique_subs[0])
+                    }
+                    dibox.create(self.mainapp , db_dict)
+                    string, res_but, ent_dict = dibox.show()
+
             else:
                 sub_par_w.set_values([])
                 sub_par_w.entry_var.set('')
 
             print('unique_subs: ', type(unique_subs), unique_subs)
 
+        par_w = self.cb_ret_cat
+        sub_par_w = self.cb_ret_cat_exclud
+        fill_cat_su_cat(par_w, sub_par_w)
+        sub_par_w.entry_var.set("")
+
         par_w = self.cb_cats
         sub_par_w = self.cb_subcats
         fill_cat_su_cat(par_w, sub_par_w)
+
         par_w = self.cb_cats2
         sub_par_w = self.cb_subcats2
         fill_cat_su_cat(par_w, sub_par_w)
+
+
 
         #self.res_lab["text"] = f'{self.frame_name} {date_from_string} {today_date_string} {self.cb_cats.get()}'
 
@@ -487,8 +550,30 @@ class InfoFrame(tk.Frame):
         #lgen = lib_gen.Gen()
         lib_gen.Gen.save_init(self, self.mainapp, **options)
 
+    def fill_titles(self, *args):
+        print(f'\nfill_titles args:<{args}>')
+        ret_cat = self.cb_ret_cat.entry.get()
+        cat = self.cb_cats.entry.get()
+        cat_val = self.cb_subcats.entry.get()
+        cat2 = self.cb_cats2.entry.get()
+        cat2_val = self.cb_subcats2.entry.get()
+
+        tit =  f"{ret_cat.replace('_', ' ')} of {cat} {cat_val}".capitalize()
+        tit = tit.replace('/', '_')
+        self.ent_gr_tit.delete(0, tk.END)
+        self.ent_gr_tit.insert(0, tit)
+
+        xtit = ret_cat.replace('_', " ").capitalize()
+        xtit = xtit.replace('/', '_')
+        self.ent_gr_xaxis_tit.delete(0, tk.END)
+        self.ent_gr_xaxis_tit.insert(0, xtit)
+
+
     def get_db_gr_opts(self):
         self.db_opts = {}
+        self.gr_opts = {}
+        mast_be_filled = []
+        empty_entrs = ''
         self.db_opts['tbl_name'] = self.frame_name[0:4]
 
         self.db_opts['last_y_m'] = self.var_from_range.get()
@@ -496,37 +581,95 @@ class InfoFrame(tk.Frame):
         self.db_opts['date_upto'] = self.lab_date_upto.get_date()
 
         self.db_opts['show_me_what'] = self.cb_show_me_what.entry.get()
-        self.db_opts['ret_cat'] = self.cb_ret_cat.entry.get()
-        self.db_opts['cat'] = self.cb_cats.entry.get()
-        self.db_opts['subcat'] = self.cb_subcats.entry.get()
-        self.db_opts['cat2'] = self.cb_cats2.entry.get()
-        self.db_opts['subcat2'] = self.cb_subcats2.entry.get()
+        mast_be_filled.append((self.cb_show_me_what.entry, 'Show me'))
+        self.db_opts['ret_cat']      = self.cb_ret_cat.entry.get().split(', ')
+        mast_be_filled.append((self.cb_ret_cat.entry, 'Show me'))
+        self.db_opts['cat']          = self.cb_cats.entry.get()
+        self.db_opts['cat_val']      = self.cb_subcats.entry.get().split(', ')
+        self.db_opts['cat2']         = self.cb_cats2.entry.get()
+        self.db_opts['cat2_val']     = self.cb_subcats2.entry.get()
+        self.db_opts['excludes']     = self.cb_ret_cat_exclud.entry.get().split(', ')
 
-        print(self.db_opts)
+        self.gr_opts['tit']       = self.ent_gr_tit.get()
+        mast_be_filled.append((self.ent_gr_tit, 'Title'))
+        self.gr_opts['xaxis_tit'] = self.ent_gr_xaxis_tit.get()
+        mast_be_filled.append((self.ent_gr_xaxis_tit, 'X axis Title'))
+        self.gr_opts['yaxis_tit'] = self.ent_gr_yaxis_tit.get()
+        mast_be_filled.append((self.ent_gr_yaxis_tit, 'Y axis Title'))
+        self.gr_opts['excludes']  = self.cb_ret_cat_exclud.entry.get().split(',')
+        self.gr_opts['chart_type'] = self.cb_chart_type.entry.get().split(',')
+
+        print(f'self.db_opts:{self.db_opts}')
+        print(f'self.gr_opts:{self.gr_opts}')
+        print(f'type of self.db_opts["ret_cat"]: {type(self.db_opts["ret_cat"])}')
+        print(f'self.db_opts["excludes"]: <{self.db_opts["excludes"]}>, {len(self.db_opts["excludes"])}')
+
+        for w, labtxt in mast_be_filled:
+            if w.get() == '':
+                empty_entrs += f"{labtxt}, "
+
+        if empty_entrs != []:
+            return empty_entrs
+        else:
+            return None
 
     def create_graph(self):
         print('Button CreateGraph', 'res_lab: ', self.res_lab.cget("text"))
-        self.get_db_gr_opts()
-        return
-        self.fill_res_lab()
-        #date_from = self.lab_date_from.get_date()
-        #date_upto = self.lab_date_upto.get_date()
+        ret = self.get_db_gr_opts()
+        if ret:
+            ret= ret[:-2]  # strip last ", "
+            messagebox.showerror("Empty fields", f'The following entries:\n\n{ret}\n\n must be full')
+            return
+
+        read_tbl_args = []
+        read_tbl_args.append(self.db_opts['tbl_name'])
+        last_y_m = self.db_opts['last_y_m']
+        if last_y_m == 'ly':
+            date_from = date.today() - timedelta(days=365)
+            date_upto = date.today()
+            #date_from = str((date.today() - timedelta(days=365)).strftime("%d/%m/%Y"), )
+        elif last_y_m == 'lm':
+            date_from = date.today() - timedelta(days=30)
+            date_upto = date.today()
+            #date_from = str((date.today() - timedelta(days=30)).strftime("%d/%m/%Y"), )
+        else:
+            date_from = self.db_opts['date_from']
+            date_upto = self.db_opts['date_upto']
+        read_tbl_args.extend([date_from])
+        read_tbl_args.extend([date_upto])
+
+        read_tbl_kwargs = {}
+        read_tbl_kwargs['ret_cat'] = self.db_opts['ret_cat']
+        read_tbl_kwargs['cat'] = self.db_opts['cat'] if self.db_opts['cat']!="" else None
+        read_tbl_kwargs['cat_val'] = self.db_opts['cat_val'] if self.db_opts['cat_val']!=[''] else None
+        read_tbl_kwargs['cat2'] = self.db_opts['cat2'] if self.db_opts['cat2']!="" else None
+        read_tbl_kwargs['cat2_val'] = self.db_opts['cat2_val'] if self.db_opts['cat2_val']!="" else None
+        read_tbl_kwargs['excludes'] = self.db_opts['excludes'] if self.db_opts['excludes']!=[''] else None
+
+        print(f'read_tbl_args:<{read_tbl_args}>')
+        print(f'read_tbl_kwargs:<{read_tbl_kwargs}>')
+
         sql = SqliteDB()
-        #df = sql.read_table(self.frame_name[0:4], self.date_from, self.date_upto)
+        df = sql.read_table(*read_tbl_args, **read_tbl_kwargs)
+        #print(df)
+
+        gr_kwargs = {}
+        gr_kwargs['cat'] = self.db_opts['ret_cat'][0]
+        gr_kwargs['tit'] = self.gr_opts['tit']
+        gr_kwargs['xaxis_tit'] = self.gr_opts['xaxis_tit']
+        gr_kwargs['yaxis_tit'] = self.gr_opts['yaxis_tit']
+        gr_kwargs['chart_type'] = ['pie', 'bar']
+        gr_kwargs['excludes'] = read_tbl_kwargs['excludes']
+        print(f'gr_kwargs:<{gr_kwargs}>')
+
         dp = DrawPlot()
 
-        cat = self.cb_ret_cat.get_selected()[0]
-        # dp.by_string(df, self.cb_cats.get(), f'{self.frame_name}s by {self.cb_cats.get()}', 'Quantity', self.cb_cats.get().capitalize())
-        # dp.by_string(df, cat, f'{self.frame_name}s by {cat}', 'Quantity', cat.capitalize())
-        options = {
-            'cat': 'catalog',
-            'tit': 'RMAs by Catalog',
-            'xaxis_tit': 'Catalog',
-            'yaxis_tit': 'Quantity',
-            'chart_type': 'bar',
-        }
-        df = sql.read_table(self.frame_name[0:4], date_from, date_upto, ret_cat=['catalog'])
-        dp.by_category(df, **options)
+        if self.db_opts['show_me_what'] == 'when':
+            dp.by_cat_day(df, **gr_kwargs)
+        elif self.db_opts['show_me_what'] == 'all':
+            dp.by_category(df, **gr_kwargs)
+
+        return
 
     def save_graph(self):
         init_dir = self.mainapp.gaSet['host_fld']
@@ -540,22 +683,32 @@ class InfoFrame(tk.Frame):
         if fname is None or fname=="" :
             return None
 
-        date_from = gen.format_date_to_uso('11/03/2024')
-        date_upto = gen.format_date_to_uso('12/04/2025', last_sec=True)
-        tbl_nam = 'RMA'
-        ret_cat = ["failure_desc"]
-        cat = "product_line"
-        cat_val = "ETX-203AX"
-        cat2 = None
-        cat2_val = None
-        options = {}
+        ret = self.get_db_gr_opts()
+        if ret:
+            ret = ret[:-2]  # strip last ", "
+            messagebox.showerror("Empty fields", f'The following entries:\n\n{ret}\n\n must be full')
+            return
+
+        print('self.db_opts')
+        for item in self.db_opts.items():
+            print(item)
+        print('self.gr_opts')
+        for item in self.gr_opts.items():
+            print(item)
+
+        if self.gr_opts["excludes"] == ['']:
+            excludes = None
+
         options = {
-            'cat': 'failure_desc',
-            'tit': 'RMAs by failure_desc of ETX-203AX',
-            'xaxis_tit': 'failure_desc',
-            'yaxis_tit': 'Quantity',
-            'chart_type': 'bar',
+            'cat': f'{self.db_opts["ret_cat"][0]}',
+            'tit': f'{self.gr_opts["tit"]}',
+            'xaxis_tit': f'{self.gr_opts["xaxis_tit"]}',
+            'yaxis_tit': f'{self.gr_opts["yaxis_tit"]}',
+            'chart_type': f'{self.gr_opts["chart_type"]}',
         }
+        if self.gr_opts["excludes"] != ['']:
+            options['excludes'] =  self.gr_opts["excludes"]
+
         include_extra = False
 
         lines = []
@@ -570,8 +723,20 @@ class InfoFrame(tk.Frame):
             "gen = lib_gen.FormatDates()",
             # f"date_from = gen.format_date_to_uso('{date_from}')",
             # f"date_upto = gen.format_date_to_uso('{date_upto}', last_sec=True)",
-            f"date_from = '{date_from}'",
-            f"date_upto = '{date_upto}'",
+            #self.date_from = date.today() - timedelta(days=365)
+            #self.date_upto = date.today()
+        ]
+        if self.db_opts['last_y_m'] == 'ly':
+            lines += [f"date_from = '{date.today() - timedelta(days=365)}'",]
+            lines += [f"date_upto = '{date.today()}'", ]
+        elif self.db_opts['last_y_m'] == 'lm':
+            lines += [f"date_from = '{date.today() - timedelta(days=30)}'",]
+            lines += [f"date_upto = '{date.today()}'", ]
+        else:
+            lines += [f"date_from = '{self.db_opts['date_from']}'",]
+            lines += [f"date_upto = '{self.db_opts['date_upto']}'", ]
+
+        lines += [
             "sql = SqliteDB()",
             "dp = DrawPlot()",
             "",
@@ -582,15 +747,26 @@ class InfoFrame(tk.Frame):
         lines.append("}")
         lines.append("")
 
-        db_call = f"df = sql.read_table('{tbl_nam}', '{date_from}', '{date_upto}', ret_cat={ret_cat}"
-        if cat:
+        db_call = (f"df = sql.read_table("
+                   f"'{self.db_opts['tbl_name']}', "
+                   "date_from, date_upto, " 
+                   f"ret_cat={self.db_opts['ret_cat']}"
+                   )
+        if self.db_opts['cat'] != '':
              print('cat')
-             db_call += f", cat='{cat}', cat_val='{cat_val}'"
-        if cat2:
-             db_call += f", cat2='{cat2}', cat2_val='{cat2_val}'"
+             db_call += f", cat='{self.db_opts['cat']}', cat_val={self.db_opts['cat_val']}"
+        if self.db_opts['cat2'] != '':
+             db_call += f", cat2='{self.db_opts['cat2']}', cat2_val={self.db_opts['cat2_val']}"
+
+        if self.gr_opts["excludes"] != ['']:
+            db_call += f", excludes={ self.gr_opts['excludes']}"
         db_call += ")"
         lines.append(db_call)
-        lines.append("dp.by_category(df, **options)")
+
+        if self.db_opts['show_me_what'] == 'all':
+            lines.append("dp.by_category(df, **options)")
+        elif self.db_opts['show_me_what'] == 'when':
+            lines.append("dp.by_cat_day(df, **options)")
 
         if include_extra:
             lines += [
@@ -642,8 +818,9 @@ class OpenGraph(tk.Frame):
         if fname:
             try:
                 subprocess.run([sys.executable, fname], check=True)
-            except:  # <- naked except is a bad idea
-                showerror("Open Source File", "Failed to read file\n'%s'" % fname)
+            except Exception as e:  # <- naked except is a bad idea
+                showerror("Open Source File",
+                          f"Failed to read file {fname}, \nError: {e}")
             return
 
 
@@ -819,12 +996,15 @@ class TtkMultiSelectCombobox(ttk.Frame):
         for val in values:
             self.listbox.insert(tk.END, val)
 
-
-
     def add_value(self, value):
         self.listbox.insert(tk.END, value)
         self.values.append(value)
 
+    def clear_selection(self):
+        if self.listbox.cget("selectmode") == "single":
+            self.listbox.selection_clear(0, tk.END)
+            self.selected = []
+            self.entry_var.set("")  # Очистить поле ввода, если нужно
 
 if __name__ == '__main__':
 

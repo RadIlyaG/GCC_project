@@ -12,7 +12,7 @@ class DialogBox(tk.Toplevel):
         
 
     def create(self, parent, db_dict, *args):
-        print(f"DialogBox parent:{parent} txt:{db_dict['message']} args:{args}")
+        print(f"DialogBox parent:<{parent}> txt:{db_dict['message']} args:{args}")
         tk.Toplevel.__init__(self, parent)
         x_pos = parent.winfo_x() + 20
         y_pos = parent.winfo_y() + 20

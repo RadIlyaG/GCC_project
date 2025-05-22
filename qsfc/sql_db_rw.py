@@ -8,12 +8,12 @@ class SqliteDB:
     def __init__(self):
         qsfc_dir = os.path.dirname(os.path.abspath(__file__))
         self.db = os.path.join(qsfc_dir, 'db.db')
-        print(f"[DEBUG] Using DB file: {self.db}")
+        #print(f"[DEBUG] Using DB file: {self.db}")
 
         # self.db = 'db.db'
         #self.db = os.path.join(os.path.dirname(__file__), '..', 'db.db')
         #self.db = os.path.abspath(self.db)
-        print(f"[DEBUG] Using DB file: {os.path.abspath(self.db)}", self.list_tables())
+        #print(f"[DEBUG] Using DB file: {os.path.abspath(self.db)}", self.list_tables())
 
     def list_tables(self):
         import sqlite3
