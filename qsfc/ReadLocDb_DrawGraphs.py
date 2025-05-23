@@ -483,9 +483,9 @@ options = {
     'chart_type' : 'bar',
     #'group_by': 'ddd'
 }
-df = sql.read_table('RMA', date_from, date_upto, ret_cat=['product_line'], cat='product_line', cat_val=['ETX-203AX', 'ETX-2i-100G'])
-# dp.by_category(df, **options)
-dp.by_cat_day(df, **options)
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['product_line'], cat='product_line', cat_val=['ETX-203AX', 'ETX-2i-100G'])
+# # dp.by_category(df, **options)
+# dp.by_cat_day(df, **options)
 
 # options = {
 #     'cat' : 'product_line',

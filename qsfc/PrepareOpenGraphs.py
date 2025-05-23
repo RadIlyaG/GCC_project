@@ -305,6 +305,8 @@ class InfoFrame(tk.Frame):
         self.cb_show_me_what = TtkMultiSelectCombobox(self.fr_graph_details)
         self.cb_show_me_what.listbox.config(selectmode="single", height=3)
         self.cb_show_me_what.entry.config(width=5)
+        self.cb_show_me_what.listbox.bind("<<ListboxSelect>>",
+                                          lambda e: (self.fill_titles()), add="+")
         self.cb_show_me_what.set_values(['all', 'when'])
         self.cb_show_me_what.grid(row=ro, column=co, sticky='e', padx=2, pady=2)
         co += 1
@@ -335,7 +337,8 @@ class InfoFrame(tk.Frame):
         self.var_cats = tk.StringVar()
         self.cb_cats = TtkMultiSelectCombobox(self.fr_graph_details)
         # self.cb_cats.listbox.config(selectmode="single")
-        self.cb_cats.listbox.bind("<<ListboxSelect>>", self.fill_res_lab, add="+")
+        self.cb_cats.listbox.bind("<<ListboxSelect>>",
+                                  lambda e: (self.fill_res_lab(), self.fill_titles()), add="+")
         #self.cb_cats.entry.config(width=25)
         self.cb_cats.grid(row=ro, column=co, columnspan=1, sticky='ew', padx=2, pady=2)
 
@@ -360,7 +363,8 @@ class InfoFrame(tk.Frame):
         co = 0
         ro += 1
         self.cb_cats2 = TtkMultiSelectCombobox(self.fr_graph_details)
-        self.cb_cats2.listbox.bind("<<ListboxSelect>>", self.fill_res_lab, add="+")
+        self.cb_cats2.listbox.bind("<<ListboxSelect>>",
+                                  lambda e: (self.fill_res_lab(), self.fill_titles()), add="+")
         # self.cb_cats2.listbox.config(selectmode="single")
         # self.cb_cats.entry.config(width=25)
         self.cb_cats2.grid(row=ro, column=co, columnspan=1, sticky='ew', padx=2, pady=2)
@@ -370,6 +374,7 @@ class InfoFrame(tk.Frame):
         self.lab_subcats2.grid(row=ro, column=co, sticky='w')
         co += 1
         self.cb_subcats2 = TtkMultiSelectCombobox(self.fr_graph_details)  # ttk.Combobox(self, width=35)
+        self.cb_subcats2.listbox.bind("<<ListboxSelect>>", self.fill_titles, add="+")
         # self.cb_subcats2.entry.config(width=25)
         self.cb_subcats2.grid(row=ro, column=co, columnspan=1, sticky='ew', padx=2, pady=2)
 
@@ -501,7 +506,11 @@ class InfoFrame(tk.Frame):
                     # self.cb_subcats.configure(values=unique_subs)
                     # self.cb_subcats.set(unique_subs[0])
                     sub_par_w.set_values(unique_subs)
-                    sub_par_w.entry_var.set(unique_subs[0])
+
+                    sub_val = sub_par_w.entry_var.get()
+                    ##  change only if it empty or the same value
+                    if sub_val == '' or sub_val == unique_subs[0]:
+                        sub_par_w.entry_var.set(unique_subs[0])
                 else:
                     dibox = dbox.DialogBox()
                     db_dict = {
@@ -551,22 +560,35 @@ class InfoFrame(tk.Frame):
         lib_gen.Gen.save_init(self, self.mainapp, **options)
 
     def fill_titles(self, *args):
-        print(f'\nfill_titles args:<{args}>')
+        #print(f'\nfill_titles')
         ret_cat = self.cb_ret_cat.entry.get()
         cat = self.cb_cats.entry.get()
         cat_val = self.cb_subcats.entry.get()
         cat2 = self.cb_cats2.entry.get()
         cat2_val = self.cb_subcats2.entry.get()
+        all_when = self.cb_show_me_what.entry.get()
+        print(f'<{all_when}>, {type(all_when)}')
 
-        tit =  f"{ret_cat.replace('_', ' ')} of {cat} {cat_val}".capitalize()
+        tit =  (f"{ret_cat.replace('_', ' ')}").upper()
+        if cat!='':
+            tit += f" where {cat.upper()} is {cat_val.upper()}"
+        if cat2!='':
+            tit +=f" and {cat2.upper()} is {cat2_val.upper()}"
         tit = tit.replace('/', '_')
         self.ent_gr_tit.delete(0, tk.END)
         self.ent_gr_tit.insert(0, tit)
 
-        xtit = ret_cat.replace('_', " ").capitalize()
+        xtit = ret_cat.replace('_', " ").upper()
         xtit = xtit.replace('/', '_')
         self.ent_gr_xaxis_tit.delete(0, tk.END)
         self.ent_gr_xaxis_tit.insert(0, xtit)
+
+        if all_when == 'when':
+            self.cb_chart_type.entry_var.set('bar')
+        elif all_when == 'all':
+            self.cb_chart_type.entry_var.set('bar, pie')
+
+
 
 
     def get_db_gr_opts(self):
@@ -598,6 +620,7 @@ class InfoFrame(tk.Frame):
         mast_be_filled.append((self.ent_gr_yaxis_tit, 'Y axis Title'))
         self.gr_opts['excludes']  = self.cb_ret_cat_exclud.entry.get().split(',')
         self.gr_opts['chart_type'] = self.cb_chart_type.entry.get().split(',')
+        mast_be_filled.append((self.cb_chart_type.entry, 'Chart Type'))
 
         print(f'self.db_opts:{self.db_opts}')
         print(f'self.gr_opts:{self.gr_opts}')
@@ -658,7 +681,7 @@ class InfoFrame(tk.Frame):
         gr_kwargs['tit'] = self.gr_opts['tit']
         gr_kwargs['xaxis_tit'] = self.gr_opts['xaxis_tit']
         gr_kwargs['yaxis_tit'] = self.gr_opts['yaxis_tit']
-        gr_kwargs['chart_type'] = ['pie', 'bar']
+        gr_kwargs['chart_type'] = self.gr_opts['chart_type']
         gr_kwargs['excludes'] = read_tbl_kwargs['excludes']
         print(f'gr_kwargs:<{gr_kwargs}>')
 
@@ -672,10 +695,20 @@ class InfoFrame(tk.Frame):
         return
 
     def save_graph(self):
+        # check all fields are full
+        ret = self.get_db_gr_opts()
+        if ret:
+            ret = ret[:-2]  # strip last ", "
+            messagebox.showerror("Empty fields", f'The following entries:\n\n{ret}\n\n must be full')
+            return
+
         init_dir = self.mainapp.gaSet['host_fld']
         fname = ""
+        ini_file = self.ent_gr_tit.get().replace(',', '_').replace(' ', '_')+'.py'
+
         fname = asksaveasfilename(initialdir=init_dir,
                                 title="Open file okay?",
+                                initialfile=ini_file,
                                 filetypes=(("text files", "*.py"),
                                            ("all files", "*.*"))
                                 )
@@ -683,11 +716,7 @@ class InfoFrame(tk.Frame):
         if fname is None or fname=="" :
             return None
 
-        ret = self.get_db_gr_opts()
-        if ret:
-            ret = ret[:-2]  # strip last ", "
-            messagebox.showerror("Empty fields", f'The following entries:\n\n{ret}\n\n must be full')
-            return
+
 
         print('self.db_opts')
         for item in self.db_opts.items():
@@ -727,11 +756,11 @@ class InfoFrame(tk.Frame):
             #self.date_upto = date.today()
         ]
         if self.db_opts['last_y_m'] == 'ly':
-            lines += [f"date_from = '{date.today() - timedelta(days=365)}'",]
-            lines += [f"date_upto = '{date.today()}'", ]
+            lines += ["date_from = date.today() - timedelta(days=365)",]
+            lines += ["date_upto = date.today()", ]
         elif self.db_opts['last_y_m'] == 'lm':
-            lines += [f"date_from = '{date.today() - timedelta(days=30)}'",]
-            lines += [f"date_upto = '{date.today()}'", ]
+            lines += ["date_from = date.today() - timedelta(days=30)",]
+            lines += ["date_upto = date.today()", ]
         else:
             lines += [f"date_from = '{self.db_opts['date_from']}'",]
             lines += [f"date_upto = '{self.db_opts['date_upto']}'", ]
