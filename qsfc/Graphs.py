@@ -3,6 +3,7 @@ import plotly.io as pio
 from collections import Counter, defaultdict
 from datetime import date, timedelta, datetime
 
+#from plotly.matplotlylib.mplexporter.renderers import fig_to_vega
 
 
 class DrawPlot:
@@ -327,7 +328,7 @@ class DrawPlot:
 
     def by_category(self, data, **kwargs):
         self.data = data
-        print('kwargs: ', kwargs)
+        print('by_category kwargs: ', kwargs)
         if len(data)==0:
             print('data: ', data)
             self.dialbox_nodate(**kwargs)
@@ -376,6 +377,7 @@ class DrawPlot:
         figures = {}
 
         fig_bar = go.Figure(go.Bar(x=names, y=counts, orientation='v', text=counts))
+        #print(f'fig_bar:{fig_bar}')
         figures['bar'] = fig_bar
         fig_bar.update_layout(title=f'{titl}',
                           xaxis_title=xaxis_tit,
@@ -397,17 +399,24 @@ class DrawPlot:
         #pio.write_html(fig_pie, file=f'c:/temp/{tit}.pie.html', auto_open=True)
 
         return_charts = []
+
         if 'chart_type' in kwargs:
-            print (kwargs['chart_type'])
+            #print (f"kwargs['chart_type']:{kwargs['chart_type']}")
             if 'bar' in kwargs['chart_type']:
-                pio.write_html(fig_bar, file=f'c:/temp/{tit}.bar.html', auto_open=True)
-                return_charts += fig_bar
+                if 'drill_plot_only' in kwargs and kwargs['drill_plot_only'] is False:
+                    pio.write_html(fig_bar, file=f'c:/temp/{tit}.bar.html', auto_open=True)
+                return_charts.extend(fig_bar)
             if 'pie' in kwargs['chart_type']:
-                pio.write_html(fig_pie, file=f'c:/temp/{tit}.pie.html', auto_open=True)
-                return_charts += fig_pie
-            return return_charts
+                if 'drill_plot_only' in kwargs and kwargs['drill_plot_only'] is False:
+                    pio.write_html(fig_pie, file=f'c:/temp/{tit}.pie.html', auto_open=True)
+                return_charts.extend(fig_pie)
+            #print(f'return_charts:<{return_charts}>, {type(return_charts)}')
+            #return return_charts[0]
         else:
             return fig_bar
+
+        #print(f'by_cat ret fig_bar:<{fig_bar}>, {type(fig_bar)}')
+        return fig_bar
 
 
 
@@ -571,7 +580,9 @@ class DrawPlot:
             yaxis_title='Quantity',
             autosize=True
         )
-        pio.write_html(fig_bar, file=f'c:/temp/{tit}.barg.html', auto_open=True)
+        if 'drill_plot_only' in kwargs and kwargs['drill_plot_only'] is False:
+            pio.write_html(fig_bar, file=f'c:/temp/{tit}.barg.html', auto_open=True)
+        return fig_bar
 
     def by_subcat_day(self, data, cat, subcat):
         self.data = data

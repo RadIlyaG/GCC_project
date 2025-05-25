@@ -4,7 +4,7 @@ from Graphs import DrawPlot
 from utils import lib_gen
 
 gen = lib_gen.FormatDates()
-date_from = gen.format_date_to_uso('13/06/2021')
+date_from = gen.format_date_to_uso('01/01/2025')
 date_upto = gen.format_date_to_uso('31/05/2025', last_sec=True)
 sql = SqliteDB()
 #df = sql.read_table('RMA', date_from, date_upto)
@@ -331,9 +331,9 @@ options = {
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
 }
-df = sql.read_table('RMA', date_from, date_upto, ret_cat=['catalog', 'doa'], cat='customers_name', cat_val='CANCOM GMBH',cat2='doa', cat2_val='1')
-dp.by_category(df, **options)
-dp.by_cat_day(df, **options)
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['catalog', 'doa'], cat='customers_name', cat_val='CANCOM GMBH',cat2='doa', cat2_val='1')
+# dp.by_category(df, **options)
+# dp.by_cat_day(df, **options)
 
 # NFF by customers_name Bynet
 ## Show me all 'nff' where 'customers_name' is BYNET

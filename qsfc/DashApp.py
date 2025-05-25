@@ -14,6 +14,9 @@ import tkinter as tk
 from tkinter import messagebox
 import flask
 
+from GetData import Qsfc, DrawPlot
+from sql_db_rw import SqliteDB
+
 shutdown_flag = {"exit": False}
 
 def create_app(data):
@@ -21,14 +24,16 @@ def create_app(data):
     #app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
     app.title = "QSFC Data Vizualisation"
 
+
+
     app.layout = html.Div([
         #dcc.Graph(figure=fig),
         dbc.Row([
             dbc.Col(
-                html.H1("QSFC Data"),
+                #html.H1("QSFC Data"),
             ),
             dbc.Col(
-                html.H4("by Dash system")
+                #html.H4("by Dash system")
             ),
         ]),
         dbc.Row([
@@ -43,26 +48,14 @@ def create_app(data):
             ),
             dbc.Col(
                 html.Div([
-                    # dcc.DatePickerRange(
-                    #     id='my-date-picker-range',
-                    #     #min_date_allowed=date(1995, 8, 5),
-                    #     #max_date_allowed=date(2995, 8, 5), #date.today(),
-                    #     initial_visible_month=date(2021, 1, 1), #date.today(),
-                    #     end_date=date.today().strftime("%d/%b/%Y"),
-                    #     start_date=date(2021, 1, 1),
-                    #     #month_format='DD MMMM YYYY',
-                    #     start_date_placeholder_text=date.today(),
-                    #     end_date_placeholder_text=date.today().strftime("%d/%b/%Y"),
-                    #     display_format='DD/MM/Y'
-                    # ),
-                    # html.Div(id='output-container-date-picker-range'),
                     html.Div("FROM date"),
                     dcc.DatePickerSingle(
                         id='date-picker-from',
                         #date=(date.today() - timedelta(days=365)).strftime("%d/%b/%Y"),
                         display_format='YYYY-MM-DD',
                         #date=date.today() - timedelta(days=365),
-                        date=date.today() - timedelta(days=30),
+                        #date=date.today() - timedelta(days=60),
+                        date='2025-01-01'
                     ),
                 ]),
                 width=1,
@@ -82,22 +75,54 @@ def create_app(data):
                 ),
             dbc.Col(
                 html.Div([
-
                     html.Div(id='output-container-date-picker-single')
                 ]),
-                width=5,
+                width=0,
+            ),
+            dbc.Col(
+                html.Div([
+                    dcc.Dropdown(
+                        id='dd_all_when',
+                        options=[
+                            {'label': 'Per Category', 'value': 'all'},
+                            {'label': 'Per Date', 'value': 'when'},
+                        ],
+                        value='all',  # default value
+                        clearable=False,  # can't clear the entry
+                        multi=False
+                    ),
+                    html.Div(id='ddcategories')
+                ]),
+                width=2,
+            ),
+            dbc.Col(
+                html.Div([
+                    dcc.Dropdown(
+                        id='dropdown-categories',
+                        options=[
+                            {'label': 'Product Line', 'value': 'product_line'},
+                            {'label': 'Catalog', 'value': 'catalog'},
+                            {'label': 'CSL', 'value': 'csl'}
+                        ],
+                        value='product_line',  # default value
+                        clearable=False,  # can't clear the entry
+                        multi=False
+                    ),
+                    html.Div(id='categories')
+                ]),
+                width=2,
             ),
         ], class_name='row_style',
         ),
         dbc.Row([
             dbc.Col(
-                dbc.Button("Get data from QSFC DB", id='get_data', n_clicks=0,
+                dbc.Button('Draw Graph', id='get_data', n_clicks=0,
                            className='mr-2'),
                 width=1,
             ),
             dbc.Col(
                 #html.Div(dcc.Graph(figure=fig), id='plot_place'),
-                dcc.Graph(id='plot_1',
+                dcc.Graph(id='main-chart',
                           style={"height": "80vh"}
                           ),
                 width=11,
@@ -122,7 +147,7 @@ def register_callbacks(app):
         [State('date-picker-from', 'date'),
         State('date-picker-upto', 'date')])
     def update_output(n, start_date, end_date):
-        print('n:', n, start_date, end_date)
+        print('apply_dates','n:', n, start_date, end_date)
         string_prefix = 'You have selected: '
         if start_date is not None:
             try:
@@ -133,7 +158,7 @@ def register_callbacks(app):
                 start_date_string = start_date_object.strftime('%d/%m/%Y')
                 string_prefix = string_prefix + 'Start Date: ' + start_date_string + ' | '
             #string_prefix = string_prefix + 'Start Date: ' + start_date + ' | '
-            print(f'1, {string_prefix}')
+            #print(f'1, {string_prefix}')
         if end_date is not None:
             try:
                 end_date_object = date.fromisoformat(end_date)
@@ -143,52 +168,64 @@ def register_callbacks(app):
                 end_date_string = end_date_object.strftime('%d/%m/%Y')
                 string_prefix = string_prefix + 'End Date: ' + end_date_string
             #string_prefix = string_prefix + 'End Date: ' + end_date
-            print(f'2, {string_prefix}')
+            #print(f'2, {string_prefix}')
         if len(string_prefix) == len('You have selected: '):
             return 'Select a date to see it displayed here'
         else:
-            print(f'3, {string_prefix}')
-            return string_prefix
+            #print(f'3, {string_prefix}')
+            return ''  #string_prefix
 
     @app.callback(
-        [Output('plot_1', 'figure')],
-        [Input('get_data', 'n_clicks')],
+        [Output('main-chart', 'figure')],
+        [Input('main-chart', 'clickData'),
+         Input('get_data', 'n_clicks'),
+         Input('dropdown-categories', 'value'),
+         Input('dd_all_when', 'value')],
         [State('date-picker-from', 'date'),
          State('date-picker-upto', 'date')]
         )
-    def update_chart(n, start_date, end_date):
+    def update_chart(clickData, n, ret_cat, all_when, date_from, date_upto):
         if not n:
             return [go.Figure()]  # пустой график до нажатия
-        print('n:', n, 'start_date:', start_date)
-        from GetData import Qsfc, DrawPlot
-        qsfc = Qsfc()
-        qsfc.print_rtext = True
-        res_list = []
-        #df = qsfc.get_data_from_qsfc('Prod', "11/02/2025", "13/02/2025")
-        formatted_start_date = datetime.strptime(start_date, '%Y-%m-%d').strftime('%d/%m/%Y')
-        formatted_end_date   = datetime.strptime(end_date, '%Y-%m-%d').strftime('%d/%m/%Y')
-        print('n:', n, 'formatted_start_date:', formatted_start_date, 'formatted_end_date', formatted_end_date)
-        df = qsfc.get_data_from_qsfc('RMA', formatted_start_date, formatted_end_date)
-        dp= DrawPlot()
-        dp.data = df
-        dp.parse_date_from_str_into_datetime()
-        #fig = dp.by_string(df, 'tested_catalog', 'Prod by tested_catalog', 'Quantity', 'cat')
-        options = {'chart_type': 'pie'}
-        fig = dp.by_string(df, 'customers_name', 'RMAs by customer', 'Quantity',
-                           'Customer', **options)
+
+        print('update_chart','n:', n, 'date_from:', date_from,  'date_upto:', date_upto,
+              'ret_cat:', ret_cat, 'all_when:', all_when)
+
+        from dash import callback_context
+        print("Triggered by:", callback_context.triggered)
+        print("clickData:", clickData)
+
+        sql = SqliteDB()
+        dp = DrawPlot()
+        options = {
+            'cat': 'failure_desc',
+            'tit': 'Failure Types of ETX-203AX',
+            'xaxis_tit': 'Failure Types',
+            'yaxis_tit': 'Quantity',
+            'chart_type': 'bar',
+        }
+        #df = sql.read_table('RMA', date_from, date_upto, ret_cat=['failure_desc'], cat='product_line', cat_val="ETX-203AX")
+        #fig = dp.by_category(df, **options)
+        options = {
+            'cat': ret_cat,
+            'tit': 'Total RMAs',
+            'xaxis_tit': 'RMAs',
+            'yaxis_tit': 'Quantity',
+            'chart_type': 'bar',
+            'drill_plot_only' : True,
+        }
+        df = sql.read_table('RMA', date_from, date_upto, ret_cat=[ret_cat])
+        if all_when=='when':
+            fig = dp.by_cat_day(df, **options)
+        elif all_when=='all':
+            fig = dp.by_category(df, **options)
+        #print(f'upd_chart fig:<{fig}>')
         return [fig]
 
-        #df = qsfc.get_data_from_qsfc('Prod', "11/02/2025", "13/02/2025")
-        for dicti in df:
-            pass #print(dicti['open_date'])
-
-
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(
-            x=[row['quantity'] for row in df], #'open_date'
-            y=[row['tested_catalog'] for row in df], #'product_line'
-            mode='markers'
-        ))
-        return [fig]
-
+    @app.callback(
+        Output('categories', 'children'),
+        Input('dropdown-categories', 'value')
+    )
+    def update_output(value):
+        return f'Your choose: {value}'
 
