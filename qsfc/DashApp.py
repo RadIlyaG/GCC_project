@@ -37,52 +37,47 @@ def create_app(data):
             ),
         ]),
         dbc.Row([
+            dbc.Col([
+                html.Label("FROM date: ", style={'font-size': '16px'}),
+                dcc.DatePickerSingle(
+                    id='date-picker-from',
+                    date='2025-01-01',
+                    display_format='YYYY-MM-DD',
+                    style={
+                        'width': '130px',
+                    }
+                )
+            ], width="auto",
+            ),
+            dbc.Col([
+                html.Label("UPTO date: ", style={'font-size': '16px'}),
+                dcc.DatePickerSingle(
+                    id='date-picker-upto',
+                    date=date.today().strftime("%Y-%m-%d"),
+                    display_format='YYYY-MM-DD',
+                    style={
+                       'width': '130px',
+                    }
+                )
+            ], width="auto",
+            ),
+
             dbc.Col(
-                html.Div("Pick the dates"),
-                width=2,
+                html.Div([
+                    html.Div(id='output-container-date-picker-single')
+                ]),
+                width=1,
             ),
             dbc.Col(
                 dbc.Button("apply dates", id='apply_dates', n_clicks=0,
                            className='mr-2'),
                 width=1,
             ),
-            dbc.Col(
-                html.Div([
-                    html.Div("FROM date"),
-                    dcc.DatePickerSingle(
-                        id='date-picker-from',
-                        #date=(date.today() - timedelta(days=365)).strftime("%d/%b/%Y"),
-                        display_format='YYYY-MM-DD',
-                        #date=date.today() - timedelta(days=365),
-                        #date=date.today() - timedelta(days=60),
-                        date='2025-01-01'
-                    ),
-                ]),
-                width=1,
-            ),
-            dbc.Col(
-                html.Div([
-                    html.Div("UPTO date"),
-                    dcc.DatePickerSingle(
-                        id='date-picker-upto',
-                        date=date.today(),
-                        #date=date.today().strftime("%d/%m/%Y"),
-                        display_format='YYYY-MM-DD'
-                    ),
-                    #html.Div(id='output-container-date-picker-single')
-                ]),
-                width=1,
-                ),
-            dbc.Col(
-                html.Div([
-                    html.Div(id='output-container-date-picker-single')
-                ]),
-                width=0,
-            ),
+
             dbc.Col(
                 html.Div([
                     dcc.Dropdown(
-                        id='dd_all_when',
+                        id='cb_all_when',
                         options=[
                             {'label': 'Per Category', 'value': 'all'},
                             {'label': 'Per Date', 'value': 'when'},
@@ -91,7 +86,18 @@ def create_app(data):
                         clearable=False,  # can't clear the entry
                         multi=False
                     ),
-                    html.Div(id='ddcategories')
+                    html.Br(),
+                    dcc.Dropdown(
+                        id='cb_period',
+                        options=[
+                            {'label': 'Per Month', 'value': 'month'},
+                            {'label': 'Per Week', 'value': 'week'},
+                        ],
+                        value='month',  # default value
+                        clearable=False,  # can't clear the entry
+                        multi=False,
+                        style={'visibility': 'hidden'}
+                    ),
                 ]),
                 width=2,
             ),
@@ -176,24 +182,32 @@ def register_callbacks(app):
             return ''  #string_prefix
 
     @app.callback(
-        [Output('main-chart', 'figure')],
+        [Output('main-chart', 'figure'),
+         Output('cb_period', 'style')],
         [Input('main-chart', 'clickData'),
          Input('get_data', 'n_clicks'),
          Input('dropdown-categories', 'value'),
-         Input('dd_all_when', 'value')],
+         Input('cb_all_when', 'value'),
+         Input('cb_period', 'value')],
         [State('date-picker-from', 'date'),
          State('date-picker-upto', 'date')]
         )
-    def update_chart(clickData, n, ret_cat, all_when, date_from, date_upto):
-        if not n:
-            return [go.Figure()]  # пустой график до нажатия
+    def update_chart(clickData, n, ret_cat, all_when, period, date_from, date_upto):
 
-        print('update_chart','n:', n, 'date_from:', date_from,  'date_upto:', date_upto,
-              'ret_cat:', ret_cat, 'all_when:', all_when)
+        default_fig = go.Figure()
+        default_style = {'visibility': 'hidden'}
+        if not n:
+            return default_fig, default_style  # пустой график до нажатия
+
+        print('update_chart','n:', n, 'ret_cat:', ret_cat, 'all_when:', all_when, 'period:', period,
+              'date_from:', date_from,  'date_upto:', date_upto,
+              )
 
         from dash import callback_context
         print("Triggered by:", callback_context.triggered)
         print("clickData:", clickData)
+
+        cb_period_vis = {'visibility': 'hidden'} if all_when=="all" else {'visibility': 'visible'}
 
         sql = SqliteDB()
         dp = DrawPlot()
@@ -214,18 +228,24 @@ def register_callbacks(app):
             'chart_type': 'bar',
             'drill_plot_only' : True,
         }
-        df = sql.read_table('RMA', date_from, date_upto, ret_cat=[ret_cat])
+        #
+
         if all_when=='when':
-            fig = dp.by_cat_day(df, **options)
+            df = sql.read_period_counts('RMA', date_from, date_upto, period)
+            #fig = dp.by_cat_day(df, **options)
+            options['period'] = period
+            fig = dp.by_period(df, **options)
         elif all_when=='all':
+            df = sql.read_table('RMA', date_from, date_upto, ret_cat=[ret_cat])
             fig = dp.by_category(df, **options)
         #print(f'upd_chart fig:<{fig}>')
-        return [fig]
+        print("Returning:", type(fig), cb_period_vis)
+        return fig, cb_period_vis
 
-    @app.callback(
-        Output('categories', 'children'),
-        Input('dropdown-categories', 'value')
-    )
-    def update_output(value):
-        return f'Your choose: {value}'
+    # @app.callback(
+    #     Output('categories', 'children'),
+    #     Input('dropdown-categories', 'value')
+    # )
+    # def update_output(value):
+    #     return f'Your choose: {value}'
 

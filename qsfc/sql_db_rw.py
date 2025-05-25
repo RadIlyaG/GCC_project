@@ -160,7 +160,7 @@ class SqliteDB:
             for row in rows:
                 #print(row)
                 f.write(str(row)+'\n')
-
+        print(f'read table type(rows):{type(rows)}')
         return rows
 
     def start_of_week(self, date):
@@ -306,6 +306,39 @@ class SqliteDB:
         date_from = min(all_dates).split(' ')[0]
         date_to = max(all_dates).split(' ')[0]
         return date_from, date_to
+
+
+
+    def read_period_counts(self, tbl_name, start_date, end_date, period='month'):
+        print(f'\nread_period_counts {start_date}, {end_date}, {period}')
+        conn = sqlite3.connect(self.db)
+        cursor = conn.cursor()
+
+        if period == 'month':
+            date_expr = "strftime('%Y-%m', open_date)"
+        elif period == 'week':
+            # set sunday as first week day
+            date_expr = "strftime('%Y-%m-%d', date(open_date, '-' || ((strftime('%w', open_date) + 0) % 7) || ' days'))"
+        else:
+            raise ValueError("period must be 'month' or 'week'")
+
+        query = f"""
+            SELECT {date_expr} AS period, COUNT(*) as count
+            FROM {tbl_name}
+            WHERE open_date BETWEEN ? AND ?
+            GROUP BY period
+            ORDER BY period;
+        """
+
+        params = [start_date, end_date]
+
+        cursor.execute(query, params)
+        result = [{'period': row[0], 'count': row[1]} for row in cursor.fetchall()]
+
+        conn.close()
+
+        print(f'read_period_counts type(result):{type(result)}')
+        return result
 
 if __name__ == '__main__':
     db = SqliteDB()

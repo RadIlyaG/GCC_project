@@ -15,16 +15,22 @@ class DrawPlot:
         if group_by == 'day':
             check_val = 'day'
         elif group_by == 'week':
-            check_val = 'week'
+            check_val = 'period'
+        elif group_by == 'month':
+            check_val = 'period'
         else:
             check_val = 'open_date'
+        print(f'parse_date_from_str_into_datetime group_by:{group_by} check_val:{check_val}')
         for row in self.data:
             if isinstance(row[check_val], str):
                 #print('1', row['open_date'], type(row['open_date']))
                 if group_by == 'day':
                     row['day'] = datetime.strptime(row['day'], '%Y-%m-%d')
                 elif group_by == 'week':
-                     row['week'] = datetime.strptime(row['week'], '%Y-%m-%d')
+                     row['period'] = datetime.strptime(row['period'], '%Y-%m-%d')
+                elif group_by == 'month':
+                     row['period'] = datetime.strptime(row['period'], '%Y-%m')
+
                 else:
                     row['open_date'] = datetime.strptime(row['open_date'], self.strptime_format)
                 #print('2', row['open_date'], type(row['open_date']))
@@ -647,3 +653,37 @@ class DrawPlot:
         # pio.write_html(fig_bar, file=f'c:/temp/{tit}.barg.html', auto_open=True)
 
 
+    def by_period(self, data, **kwargs):
+        self.data = data
+        for x in self.data[:10]:
+            print(x)
+
+        period = kwargs['period']
+        dates = [row['period'] for row in self.data]
+        counts = [row['count'] for row in self.data]
+        summ = sum(counts)
+
+        self.parse_date_from_str_into_datetime(period)
+        dates_only = []
+        for row in self.data:
+            dates_only.append(row['period'])
+        date_from = min(dates_only)
+        date_to = max(dates_only)
+
+        fig_bar = go.Figure(go.Bar(x=dates, y=counts, orientation='v'))
+        print(f'by_period counts:{counts} dates:{dates}')
+        tit = kwargs['tit']
+        xaxis_tit = kwargs['xaxis_tit']
+        yaxis_tit = kwargs['yaxis_tit']
+        if date_from != date_to:
+            titl = f"{tit} {date_from.strftime(self.title_date_format)} — {date_to.strftime(self.title_date_format)}"
+        else:
+            titl = f"{tit} {date_from.strftime(self.title_date_format)}"
+        titl += f'\t\tTotal: {summ}'
+        fig_bar.update_layout(title='titl',
+                              xaxis_title='xaxis_tit',
+                              yaxis_title='yaxis_tit')
+        # fig.show()
+        if 'drill_plot_only' in kwargs and kwargs['drill_plot_only'] is False:
+            pio.write_html(fig_bar, file=f'c:/temp/{tit}.bar.html', auto_open=True)
+        return fig_bar
