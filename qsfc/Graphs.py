@@ -680,10 +680,16 @@ class DrawPlot:
         else:
             titl = f"{tit} {date_from.strftime(self.title_date_format)}"
         titl += f'\t\tTotal: {summ}'
-        fig_bar.update_layout(title='titl',
-                              xaxis_title='xaxis_tit',
-                              yaxis_title='yaxis_tit')
+        fig_bar.update_layout(title=titl,
+                              xaxis_title=xaxis_tit,
+                              yaxis_title=yaxis_tit)
         # fig.show()
         if 'drill_plot_only' in kwargs and kwargs['drill_plot_only'] is False:
             pio.write_html(fig_bar, file=f'c:/temp/{tit}.bar.html', auto_open=True)
+
+        fig_pie = go.Figure(data=[
+            go.Pie(labels=dates, values=list(counts), hole=0.4)
+        ])
+        #pio.write_html(fig_pie, file=f'c:/temp/{tit}.pie.html', auto_open=True)
+
         return fig_bar

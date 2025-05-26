@@ -621,6 +621,7 @@ class InfoFrame(tk.Frame):
         self.gr_opts['excludes']  = self.cb_ret_cat_exclud.entry.get().split(',')
         self.gr_opts['chart_type'] = self.cb_chart_type.entry.get().split(',')
         mast_be_filled.append((self.cb_chart_type.entry, 'Chart Type'))
+        self.gr_opts['drill_plot_only'] = False,
 
         print(f'self.db_opts:{self.db_opts}')
         print(f'self.gr_opts:{self.gr_opts}')
@@ -683,6 +684,7 @@ class InfoFrame(tk.Frame):
         gr_kwargs['yaxis_tit'] = self.gr_opts['yaxis_tit']
         gr_kwargs['chart_type'] = self.gr_opts['chart_type']
         gr_kwargs['excludes'] = read_tbl_kwargs['excludes']
+        gr_kwargs['drill_plot_only'] = self.gr_opts['drill_plot_only']
         print(f'gr_kwargs:<{gr_kwargs}>')
 
         dp = DrawPlot()
@@ -734,6 +736,7 @@ class InfoFrame(tk.Frame):
             'xaxis_tit': f'{self.gr_opts["xaxis_tit"]}',
             'yaxis_tit': f'{self.gr_opts["yaxis_tit"]}',
             'chart_type': f'{self.gr_opts["chart_type"]}',
+            'drill_plot_only': f'{self.gr_opts["drill_plot_only"]}',
         }
         if self.gr_opts["excludes"] != ['']:
             options['excludes'] =  self.gr_opts["excludes"]
@@ -745,6 +748,7 @@ class InfoFrame(tk.Frame):
             "from qsfc.sql_db_rw import SqliteDB",
             "from qsfc.Graphs import DrawPlot",
             "from utils import lib_gen",
+            "from datetime import date, timedelta, datetime",
             "",
         ]
         

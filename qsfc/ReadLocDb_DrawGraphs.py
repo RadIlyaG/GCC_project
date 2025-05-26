@@ -268,9 +268,10 @@ options = {
     'xaxis_tit' : 'NFF by product_line',
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
+    'drill_plot_only' : False,
 }
-# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['product_line'], cat='nff', cat_val='1')
-#dp.by_category(df, **options)
+df = sql.read_table('RMA', date_from, date_upto, ret_cat=['product_line'], cat='nff', cat_val='1')
+dp.by_category(df, **options)
 
 
 ## Data codes for LF-IC-NT5TU32M16CG-3CI/ETX
@@ -434,6 +435,7 @@ options = {
     'xaxis_tit' : 'Reference',
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
+    'drill_plot_only' : False,
 }
 # df = sql.read_table('RMA', date_from, date_upto, ret_cat=['location'], cat='product_line', cat_val='ETX-203AX')
 # dp.by_category(df, **options)
@@ -469,9 +471,10 @@ options = {
     'xaxis_tit' : 'Reference',
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
+    'drill_plot_only' : False,
 }
 # df = sql.read_table('RMA', date_from, date_upto, ret_cat=['product_line'], cat='product_line', cat_val=['ETX-2i-100G'])
-# # dp.by_category(df, **options)
+# dp.by_category(df, **options)
 # dp.by_cat_day(df, **options)
 
 ## 2.2 Show me when and how many product_line=ETX-203AX and ETX-2i-100G were sent
@@ -481,7 +484,8 @@ options = {
     'xaxis_tit' : 'Reference',
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
-    #'group_by': 'ddd'
+    #'group_by': 'ddd',
+    'drill_plot_only' : False,
 }
 # df = sql.read_table('RMA', date_from, date_upto, ret_cat=['product_line'], cat='product_line', cat_val=['ETX-203AX', 'ETX-2i-100G'])
 # # dp.by_category(df, **options)
@@ -522,6 +526,7 @@ options = {
     'yaxis_tit' : 'Quantity',
     'chart_type' : ['pie', 'bar'],
     'excludes' : 'Component, SFP',
+    'drill_plot_only' : False,
 }
 # df = sql.read_table('RMA', date_from, date_upto, ret_cat=['product_line'], excludes=['Component', 'SFP'])
 # dp.by_category(df, **options)

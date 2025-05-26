@@ -160,7 +160,7 @@ class SqliteDB:
             for row in rows:
                 #print(row)
                 f.write(str(row)+'\n')
-        print(f'read table type(rows):{type(rows)}')
+        #print(f'read table type(rows):{type(rows)}')
         return rows
 
     def start_of_week(self, date):
