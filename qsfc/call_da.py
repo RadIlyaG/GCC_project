@@ -1,4 +1,4 @@
-import webbrowser
+#import webbrowser
 from DashApp import create_app
 import datetime
 

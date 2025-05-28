@@ -1,21 +1,21 @@
 # drilldown_app.py
 import dash
-from click import style
+# from click import style
 from dash import dcc, html, dash_table, Input, Output, State, callback_context
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 from datetime import date, timedelta, datetime
 from dateutil.relativedelta import relativedelta
-import os
-import signal
+# import os
+# import signal
 import plotly.graph_objects as go
-from collections import defaultdict
-import time
-import threading
-import requests
-import tkinter as tk
-from tkinter import messagebox
-import flask
+# from collections import defaultdict
+# import time
+# import threading
+# import requests
+# import tkinter as tk
+# from tkinter import messagebox
+# import flask
 
 from GetData import Qsfc, DrawPlot
 from sql_db_rw import SqliteDB
@@ -27,7 +27,7 @@ today = date.today().isoformat()
 def create_app(data):
     app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
     #app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
-    app.title = "QSFC Data Vizualisation"
+    app.title = "QSFC Data Visualisation"
 
     # {'label': 'None', 'value': 'None'},
     # {'label': 'Customer', 'value': 'customers_name'},
