@@ -25,3 +25,7 @@
     display: inline-block !important;
     vertical-align: middle !important;
 }
+
+.shift-input > div.mantine-DatePickerInput-inputWrapper {
+    margin-left: 120px;
+}

@@ -270,8 +270,8 @@ options = {
     'chart_type' : 'bar',
     'drill_plot_only' : False,
 }
-df = sql.read_table('RMA', date_from, date_upto, ret_cat=['product_line'], cat='nff', cat_val='1')
-dp.by_category(df, **options)
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['product_line'], cat='nff', cat_val='1')
+# dp.by_category(df, **options)
 
 
 ## Data codes for LF-IC-NT5TU32M16CG-3CI/ETX
@@ -459,10 +459,24 @@ options = {
     'xaxis_tit' : 'Reference',
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
+    'drill_plot_only' : False,
 }
 # df = sql.read_table('RMA', date_from, date_upto, ret_cat=['product_line'], cat='product_line', cat_val=['ETX-203AX'])
 # # dp.by_category(df, **options)
 # dp.by_cat_day(df, **options)
+
+## 2.1 Show me when and how many product_line=ETX-203AX were sent
+options = {
+    'cat' : 'catalog',
+    'tit': 'RMAs of ETX-203AX',
+    'xaxis_tit' : 'Reference',
+    'yaxis_tit' : 'Quantity',
+    'chart_type' : 'bar',
+    'drill_plot_only' : False,
+}
+df = sql.read_table('RMA', date_from, date_upto, ret_cat=['catalog'], cat='catalog', cat_val=['LINE ETX-203AX_FTR/GE30/SFP30NULL/2UTP2SFP'], cat2='csl', cat2_val=['E'])
+# dp.by_category(df, **options)
+dp.by_cat_day(df, **options)
 
 ## 2.1 Show me when and how many product_line=ETX-2i-100G were sent
 options = {

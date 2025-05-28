@@ -409,11 +409,11 @@ class DrawPlot:
         if 'chart_type' in kwargs:
             #print (f"kwargs['chart_type']:{kwargs['chart_type']}")
             if 'bar' in kwargs['chart_type']:
-                if 'drill_plot_only' in kwargs and kwargs['drill_plot_only'] is False:
+                if 'drill_plot_only' in kwargs and (kwargs['drill_plot_only'] is False or kwargs['drill_plot_only']=='False') :
                     pio.write_html(fig_bar, file=f'c:/temp/{tit}.bar.html', auto_open=True)
                 return_charts.extend(fig_bar)
             if 'pie' in kwargs['chart_type']:
-                if 'drill_plot_only' in kwargs and kwargs['drill_plot_only'] is False:
+                if 'drill_plot_only' in kwargs and (kwargs['drill_plot_only'] is False or kwargs['drill_plot_only']=='False'):
                     pio.write_html(fig_pie, file=f'c:/temp/{tit}.pie.html', auto_open=True)
                 return_charts.extend(fig_pie)
             #print(f'return_charts:<{return_charts}>, {type(return_charts)}')
@@ -567,7 +567,7 @@ class DrawPlot:
         else:
             titl = f"{tit} {date_from.strftime(self.title_date_format)}"
         fig_sca.update_layout(title=titl,
-                          xaxis_title='Date',
+                          xaxis_title= '', #'Date',
                           yaxis_title='Quantity',
                           legend_title='Client')
         fig_bar.update_layout(
@@ -586,7 +586,7 @@ class DrawPlot:
             yaxis_title='Quantity',
             autosize=True
         )
-        if 'drill_plot_only' in kwargs and kwargs['drill_plot_only'] is False:
+        if 'drill_plot_only' in kwargs and (kwargs['drill_plot_only'] is False or kwargs['drill_plot_only']=='False'):
             pio.write_html(fig_bar, file=f'c:/temp/{tit}.barg.html', auto_open=True)
         return fig_bar
 

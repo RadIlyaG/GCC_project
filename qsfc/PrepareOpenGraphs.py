@@ -684,7 +684,7 @@ class InfoFrame(tk.Frame):
         gr_kwargs['yaxis_tit'] = self.gr_opts['yaxis_tit']
         gr_kwargs['chart_type'] = self.gr_opts['chart_type']
         gr_kwargs['excludes'] = read_tbl_kwargs['excludes']
-        gr_kwargs['drill_plot_only'] = self.gr_opts['drill_plot_only']
+        gr_kwargs['drill_plot_only'] = False
         print(f'gr_kwargs:<{gr_kwargs}>')
 
         dp = DrawPlot()
@@ -736,7 +736,7 @@ class InfoFrame(tk.Frame):
             'xaxis_tit': f'{self.gr_opts["xaxis_tit"]}',
             'yaxis_tit': f'{self.gr_opts["yaxis_tit"]}',
             'chart_type': f'{self.gr_opts["chart_type"]}',
-            'drill_plot_only': f'{self.gr_opts["drill_plot_only"]}',
+            'drill_plot_only': False, #f'{self.gr_opts["drill_plot_only"]}',
         }
         if self.gr_opts["excludes"] != ['']:
             options['excludes'] =  self.gr_opts["excludes"]

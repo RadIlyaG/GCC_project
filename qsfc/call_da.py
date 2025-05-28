@@ -24,7 +24,7 @@ app = create_app(data)
 if __name__ == "__main__":
     #webbrowser.open("http://127.0.0.1:8050")
     try:
-        app.run(debug=True, use_reloader=True)  # Use reloader=False to avoid issues with reloading
+        app.run(port=8081, debug=True, use_reloader=True)  # Use reloader=False to avoid issues with reloading
     except KeyboardInterrupt:
         print("Server stopped by KeyboardInterrupt")
         exit()
