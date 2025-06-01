@@ -3,6 +3,8 @@ import os
 import datetime
 import collections
 
+from qsfc.sql_db_rw import SqliteDB as qdb
+
 
 class SqliteDB:
     def __init__(self):
@@ -14,6 +16,97 @@ class SqliteDB:
         #self.db = os.path.join(os.path.dirname(__file__), '..', 'db.db')
         #self.db = os.path.abspath(self.db)
         #print(f"[DEBUG] Using DB file: {os.path.abspath(self.db)}", self.list_tables())
+
+    def get_qsfc_prod_lines(self):
+        qsfc = qdb()
+        qsfc_db = qsfc.db
+        conn = sqlite3.connect(qsfc_db)
+        cursor = conn.cursor()
+        query = f"""
+                    select product_line   FROM  RMA
+                    union
+                    select product_line   FROM Prod ;
+                """
+        cursor.execute(query)
+        rows = [row[0] for row in cursor.fetchall()]
+        print(len(rows))
+        conn.close()
+        return rows
+
+    def get_tcc_catalogs(self):
+        conn = sqlite3.connect(self.db)
+        cursor = conn.cursor()
+        query = f"""
+                    select UutName  FROM  tbl where length(UutName)> 2 group by UutName ;
+                """
+        cursor.execute(query)
+        rows = [row[0] for row in cursor.fetchall()]
+        print(len(rows))
+        conn.close()
+        return rows
+
+    def create_merged_prod_line_with_priority(main_db_path, external_db_path, output_db_path, date_from, date_upto):
+        import sqlite3
+        from pathlib import Path
+
+        # Удалим предыдущий результат
+        Path(output_db_path).unlink(missing_ok=True)
+
+        conn_out = sqlite3.connect(output_db_path)
+        cur_out = conn_out.cursor()
+
+        # Подключаем основную и внешнюю БД
+        cur_out.execute(f"ATTACH DATABASE '{main_db_path}' AS main_db")
+        cur_out.execute(f"ATTACH DATABASE '{external_db_path}' AS db2")
+
+        # Основная таблица с приоритетом RMA > Prod
+        cur_out.execute("DROP TABLE IF EXISTS merged_prod_line")
+        cur_out.execute("""
+            CREATE TABLE merged_prod_line AS
+            WITH product_lines AS (
+                SELECT t.UutName AS product, r.product_line, 1 AS priority
+                FROM db2.tbl t
+                LEFT JOIN main_db.RMA r ON r.catalog = t.UutName
+                WHERE date(REPLACE(t.Date, '.', '-')) BETWEEN date(?) AND date(?)
+
+                UNION ALL
+
+                SELECT t.UutName AS product, p.product_line, 2 AS priority
+                FROM db2.tbl t
+                LEFT JOIN main_db.Prod p ON p.tested_catalog = t.UutName
+                WHERE date(REPLACE(t.Date, '.', '-')) BETWEEN date(?) AND date(?)
+            )
+            SELECT product, product_line
+            FROM product_lines
+            WHERE product_line IS NOT NULL
+            GROUP BY product
+            HAVING MIN(priority)
+        """, (date_from, date_upto, date_from, date_upto))
+
+        # Таблица продуктов, для которых не найден product_line
+        cur_out.execute("DROP TABLE IF EXISTS missing_product_line")
+        cur_out.execute("""
+            CREATE TABLE missing_product_line AS
+            SELECT DISTINCT t.UutName AS product
+            FROM db2.tbl t
+            LEFT JOIN main_db.RMA r ON r.catalog = t.UutName
+            LEFT JOIN main_db.Prod p ON p.tested_catalog = t.UutName
+            WHERE r.product_line IS NULL AND p.product_line IS NULL
+              AND date(REPLACE(t.Date, '.', '-')) BETWEEN date(?) AND date(?)
+        """, (date_from, date_upto))
+
+        conn_out.commit()
+        conn_out.close()
+
+    def ensure_indexes_in_main_db(main_db_path):
+        conn_main = sqlite3.connect(main_db_path)
+        cur_main = conn_main.cursor()
+
+        cur_main.execute("CREATE INDEX IF NOT EXISTS idx_rma_catalog ON RMA(catalog)")
+        cur_main.execute("CREATE INDEX IF NOT EXISTS idx_prod_tested_catalog ON Prod(tested_catalog)")
+
+        conn_main.commit()
+        conn_main.close()
 
     def list_tables(self):
         import sqlite3
@@ -103,18 +196,6 @@ class SqliteDB:
         #print(f'read table type(rows):{type(rows)}')
         return rows
 
-    def start_of_week(self, date):
-        """returns start of week for date."""
-        weekday = date.weekday()  # 0 = monday
-        sunday = date - datetime.timedelta(days=(weekday + 1) % 7)
-        return sunday.replace(hour=0, minute=0, second=0, microsecond=0)
-
-
-    def retrive_min_max_dates(self, df):
-        all_dates = sorted({row['open_date'] for row in df})
-        date_from = min(all_dates).split(' ')[0]
-        date_to = max(all_dates).split(' ')[0]
-        return date_from, date_to
 
 
 
@@ -151,7 +232,7 @@ class SqliteDB:
 
 if __name__ == '__main__':
     db = SqliteDB()
-    df = db.read_table('RMA', '2024-04-05', '2025-04-12')
-    print(df)
+    db.get_qsfc_prod_lines()
+    db.get_tcc_catalogs()
 
 

@@ -7,7 +7,7 @@ import collections
 class SqliteDB:
     def __init__(self):
         qsfc_dir = os.path.dirname(os.path.abspath(__file__))
-        self.db = os.path.join(qsfc_dir, 'db.db')
+        self.db = os.path.join(qsfc_dir, 'db_qsfc.db')
         #print(f"[DEBUG] Using DB file: {self.db}")
 
         # self.db = 'db.db'
