@@ -1,4 +1,5 @@
 # drilldown_app.py
+import os
 import dash
 # from click import style
 from dash import dcc, html, dash_table, Input, Output, State, callback_context
@@ -9,6 +10,8 @@ from dateutil.relativedelta import relativedelta
 # import os
 # import signal
 import plotly.graph_objects as go
+
+import utils.sql_db_rw
 # from collections import defaultdict
 # import time
 # import threading
@@ -392,7 +395,10 @@ def register_callbacks(app):
             return curr_chart, new_level, new_cat_val
 
 
-        sql = SqliteDB()
+        sql_obj = SqliteDB()
+        sql_db = sql_obj.db_name(os.path.dirname(os.path.abspath(__file__)), 'db_qsfc.db')
+        #sql_db = os.path.abspath(str(os.path.join(os.path.abspath(__file__), 'db_qsfc.db')))
+        #sql_obj.db = sql_db
         dp = DrawPlot()
         options = {
             'cat': ret_cat,
@@ -412,7 +418,7 @@ def register_callbacks(app):
                 options['tit'] = f"All {tat_category.replace('_', ' ').upper()} of {triggered_lbl.replace('_', ' ').upper()}"
                 options['xaxis_tit'] = f'{triggered_lbl}'
                 print('main 1')
-                df = sql.read_table('RMA', date_from, date_upto, ret_cat=[tat_category],
+                df = sql_obj.read_table('RMA', date_from, date_upto, ret_cat=[tat_category],
                                     cat=ret_cat, cat_val=[triggered_lbl],
                                     cat2=tat_category, cat2_val="1")
                 fig_type = 'category'
@@ -422,14 +428,14 @@ def register_callbacks(app):
                     print('main 2.1')
                     if tat_category != 'None':
                         print('main 2.1.1')
-                        df = sql.read_table('RMA', date_from, date_upto, ret_cat=[tat_category], cat=ret_cat,
+                        df = sql_obj.read_table('RMA', date_from, date_upto, ret_cat=[tat_category], cat=ret_cat,
                                 cat_val=[triggered_lbl])
                         fig_type = 'category'
                     else:
                         print('main 2.1.2')
                         if all_when == 'all':
                             print('main 2.1.2.1')
-                            df = sql.read_table('RMA', date_from, date_upto, ret_cat=[ret_cat], cat=ret_cat,
+                            df = sql_obj.read_table('RMA', date_from, date_upto, ret_cat=[ret_cat], cat=ret_cat,
                                     cat_val=[triggered_lbl])
                             options['cat'] = ret_cat
                             fig_type = 'cat_day'
@@ -443,7 +449,7 @@ def register_callbacks(app):
                                 new_date = date_obj + relativedelta(weeks=1)
                             date_upto = new_date.strftime('%Y-%m-%d')
                             options['cat'] = [ret_cat][0]
-                            df = sql.read_table('RMA', date_from, date_upto, ret_cat=[ret_cat])
+                            df = sql_obj.read_table('RMA', date_from, date_upto, ret_cat=[ret_cat])
                             print(f'df:{df}')
                             fig_type = 'category'
 
@@ -453,7 +459,7 @@ def register_callbacks(app):
                     if tat2_category != 'None':
                         print('main 2.2.1')
                         options['cat'] = tat2_category
-                        df = sql.read_table('RMA', date_from, date_upto, ret_cat=[tat2_category],
+                        df = sql_obj.read_table('RMA', date_from, date_upto, ret_cat=[tat2_category],
                                             cat=[tat_category][0], cat_val=new_cat_val,
                                             cat2=[tat_category][0], cat2_val=[triggered_lbl],)
                         # print(f'df:{df}')
@@ -462,7 +468,7 @@ def register_callbacks(app):
                         print('main 2.2.2')
                         options['cat'] = tat_category
                         options['tit'] = f'for {new_cat_val} {tat_category.upper()}:{triggered_lbl}'
-                        df = sql.read_table('RMA', date_from, date_upto, ret_cat=[tat_category],
+                        df = sql_obj.read_table('RMA', date_from, date_upto, ret_cat=[tat_category],
                                             cat=tat_category, cat_val=new_cat_val,
                                             )
                         # print(f'df:{df}')
@@ -472,7 +478,7 @@ def register_callbacks(app):
                     print('main 2.3.2')
                     options['cat'] = tat2_category
                     options['tit'] = f'for {new_cat_val} {tat_category.upper()}:{triggered_lbl}'
-                    df = sql.read_table('RMA', date_from, date_upto, ret_cat=[tat2_category],
+                    df = sql_obj.read_table('RMA', date_from, date_upto, ret_cat=[tat2_category],
                                         cat=tat_category, cat_val=curr_cat_val,
                                         cat2=tat2_category, cat2_val=new_cat_val, )
                     # print(f'df:{df}')
@@ -487,7 +493,7 @@ def register_callbacks(app):
         else:
             if all_when=='when':
                 print('not_main 3.1')
-                df = sql.read_period_counts('RMA', date_from, date_upto, period)
+                df = sql_obj.read_period_counts('RMA', date_from, date_upto, period)
 
                 #fig = dp.by_cat_day(df, **options)
                 options['period'] = period
@@ -499,9 +505,9 @@ def register_callbacks(app):
                 print('not_main 3.2')
                 options['tit'] = f'RMAs per {ret_cat.upper()}'
                 if ret_cat=='nff' or ret_cat=='doa':
-                    df = sql.read_table('RMA', date_from, date_upto, ret_cat=[ret_cat], cat=[ret_cat][0], cat_val='1')
+                    df = sql_obj.read_table('RMA', date_from, date_upto, ret_cat=[ret_cat], cat=[ret_cat][0], cat_val='1')
                 else:
-                    df = sql.read_table('RMA', date_from, date_upto, ret_cat=[ret_cat])
+                    df = sql_obj.read_table('RMA', date_from, date_upto, ret_cat=[ret_cat])
                 fig_type = 'category'
                 fig = dp.by_category(df, **options)
                 pass

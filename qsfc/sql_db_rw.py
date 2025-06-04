@@ -3,11 +3,15 @@ import os
 import datetime
 import collections
 
+from utils.sql_db_rw import SqliteDB as sqldb
 
-class SqliteDB:
+
+class SqliteDB(sqldb):
     def __init__(self):
-        qsfc_dir = os.path.dirname(os.path.abspath(__file__))
-        self.db = os.path.join(qsfc_dir, 'db_qsfc.db')
+        super().__init__()
+        #qsfc_dir = os.path.dirname(os.path.abspath(__file__))
+        #self.db = os.path.join(qsfc_dir, 'db_qsfc.db')
+        pass
         #print(f"[DEBUG] Using DB file: {self.db}")
 
         # self.db = 'db.db'
@@ -15,7 +19,7 @@ class SqliteDB:
         #self.db = os.path.abspath(self.db)
         #print(f"[DEBUG] Using DB file: {os.path.abspath(self.db)}", self.list_tables())
 
-    def list_tables(self):
+    def ne_list_tables(self):
         import sqlite3
         conn = sqlite3.connect(self.db)
         cursor = conn.cursor()
@@ -27,6 +31,7 @@ class SqliteDB:
 
     def fill_table(self, tbl_name, data):
         conn = sqlite3.connect(self.db)
+        print(conn)
         cursor = conn.cursor()
 
         columns = list(data[0].keys())

@@ -1,3 +1,4 @@
+import os
 import socket
 import urllib3
 import urllib.parse
@@ -88,15 +89,16 @@ if __name__ == '__main__':
         qsfc = Qsfc()
         qsfc.print_rtext = True
         df = []
-        days_ago = config['days_ago']
+        days_ago = 2  #config['days_ago']
         date_from_string = str((date.today() - timedelta(days=days_ago)).strftime("%d/%m/%Y"), )
         today_date_string = date.today().strftime('%d/%m/%Y')
 
         for tbl_name in ['Prod', 'RMA']:
             df = qsfc.get_data_from_qsfc(tbl_name, date_from_string, today_date_string)
             if df[0] is False:
-                print('ee', df[1])
+                print(f'Error during get QSFC {tbl_name} Data', df[1])
                 exit(df[1])
             else:
-                tbl = SqliteDB()
-                tbl.fill_table(tbl_name, df)
+                sql_obj = SqliteDB()
+                sql_obj.db_name(os.path.dirname(os.path.abspath(__file__)), 'd1b_qsfc.db')
+                sql_obj.fill_table(tbl_name, df)

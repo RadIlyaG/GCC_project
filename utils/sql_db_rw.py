@@ -6,14 +6,22 @@ import collections
 
 class SqliteDB:
     def __init__(self):
-        qsfc_dir = os.path.dirname(os.path.abspath(__file__))
-        self.db = os.path.join(qsfc_dir, 'db_aoi.db')
+        #qsfc_dir = os.path.dirname(os.path.abspath(__file__))
+        #self.db = os.path.join(db_path, db_name)
         #print(f"[DEBUG] Using DB file: {self.db}")
 
         # self.db = 'db.db'
         #self.db = os.path.join(os.path.dirname(__file__), '..', 'db.db')
         #self.db = os.path.abspath(self.db)
         #print(f"[DEBUG] Using DB file: {os.path.abspath(self.db)}", self.list_tables())
+        pass
+
+    def db_name(self, db_path, db_name):
+        #db = str(os.path.join(db_path, db_name))
+        db = os.path.abspath(str(os.path.join(db_path, db_name)))
+        self.db = db
+        print(f"[DEBUG] Using DB file:  {db}", self.list_tables())
+        return db
 
     def list_tables(self):
         import sqlite3
@@ -33,27 +41,14 @@ class SqliteDB:
         columns_def = ", ".join([f"{col} TEXT" for col in columns])
         cursor.execute(f"DROP TABLE IF EXISTS {tbl_name};")
         cursor.execute(f"CREATE TABLE IF NOT EXISTS {tbl_name} ({columns_def})")
-        # Динамически вставляем данные
+        # Dynamically insert data
         placeholders = ", ".join(["?" for _ in columns])
         insert_sql = f"INSERT INTO {tbl_name} ({', '.join(columns)}) VALUES ({placeholders})"
         for row in data:
             values = tuple(row[col] for col in columns)
             cursor.execute(insert_sql, values)
 
-        # cursor.execute("""
-        #     CREATE TABLE IF NOT EXISTS qry_type (
-        #         form_number TEXT PRIMARY KEY,
-        #         customers_full_name TEXT,
-        #         catalog TEXT
-        #     )
-        # """)
-        # for row in data:
-        #     cursor.execute("""
-        #         INSERT INTO qry_type (form_number, customers_full_name, catalog)
-        #         VALUES (?, ?, ?)
-        #     """, (row['form_number'], row['customers_full_name'], row['catalog']))
-
-        # Сохраняем изменения и закрываем соединение
+        # Save changes and close connection
         conn.commit()
         conn.close()
 

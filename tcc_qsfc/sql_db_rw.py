@@ -2,25 +2,31 @@ import sqlite3
 import os
 import datetime
 import collections
+from pathlib import Path
 
-from qsfc.sql_db_rw import SqliteDB as qdb
+#from qsfc.sql_db_rw import SqliteDB as qdb
+from utils.sql_db_rw import SqliteDB as sqldb
 
 
-class SqliteDB:
+class SqliteDB(sqldb):
     def __init__(self):
-        work_dir = os.path.dirname(os.path.abspath(__file__))
-        self.db = os.path.join('c:/ate-controlcenter', 'jerAteStats.db')
+        super().__init__()
+        #work_dir = os.path.dirname(os.path.abspath(__file__))
+        #self.db = os.path.join('c:/ate-controlcenter', 'jerAteStats.db')
+        #self.db = os.path.join(db_path, db_name)
         #print(f"[DEBUG] Using DB file: {self.db}")
 
         # self.db = 'db.db'
         #self.db = os.path.join(os.path.dirname(__file__), '..', 'db.db')
         #self.db = os.path.abspath(self.db)
         #print(f"[DEBUG] Using DB file: {os.path.abspath(self.db)}", self.list_tables())
+        pass
 
-    def get_qsfc_prod_lines(self):
-        qsfc = qdb()
-        qsfc_db = qsfc.db
-        conn = sqlite3.connect(qsfc_db)
+    def get_qsfc_prod_lines(self,qsfc_path):
+        sql_obj = sqldb()
+        qsfc_db_file = sql_obj.db_name(qsfc_path, 'db_qsfc.db')
+        #qsfc_db = qsfc.db
+        conn = sqlite3.connect(qsfc_db_file)
         cursor = conn.cursor()
         query = f"""
                     select product_line   FROM  RMA
@@ -29,35 +35,42 @@ class SqliteDB:
                 """
         cursor.execute(query)
         rows = [row[0] for row in cursor.fetchall()]
-        print(len(rows))
+        print(f'QSFC product_line:{len(rows)}')
         conn.close()
         return rows
 
-    def get_tcc_catalogs(self):
-        conn = sqlite3.connect(self.db)
+    def get_tcc_catalogs(self, tcc_path):
+        sql_obj = sqldb()
+        tcc_db_file = sql_obj.db_name(tcc_path, 'jerAteStats.db')
+        conn = sqlite3.connect(tcc_db_file)
         cursor = conn.cursor()
         query = f"""
                     select UutName  FROM  tbl where length(UutName)> 2 group by UutName ;
                 """
         cursor.execute(query)
         rows = [row[0] for row in cursor.fetchall()]
-        print(len(rows))
+        print(f'TCC UutNames: {len(rows)}')
         conn.close()
         return rows
 
-    def create_merged_prod_line_with_priority(main_db_path, external_db_path, output_db_path, date_from, date_upto):
-        import sqlite3
-        from pathlib import Path
+    def create_merged_prod_line_with_priority(self, qsfc_db_file, tcc_db_file, output_db_file, date_from, date_upto):
+        print(f'create_merged_prod_line_with_priority',qsfc_db_file, tcc_db_file, output_db_file, date_from, date_upto)
+        #import sqlite3
+        #
 
-        # Удалим предыдущий результат
-        Path(output_db_path).unlink(missing_ok=True)
+        # Remove prev output result file
+        try:
+            Path(output_db_file).unlink(missing_ok=True)
+        except Exception as ee:
+            print(ee)
+            return -1
 
-        conn_out = sqlite3.connect(output_db_path)
+        conn_out = sqlite3.connect(output_db_file)
         cur_out = conn_out.cursor()
 
         # Подключаем основную и внешнюю БД
-        cur_out.execute(f"ATTACH DATABASE '{main_db_path}' AS main_db")
-        cur_out.execute(f"ATTACH DATABASE '{external_db_path}' AS db2")
+        cur_out.execute(f"ATTACH DATABASE '{qsfc_db_file}' AS main_db")
+        cur_out.execute(f"ATTACH DATABASE '{tcc_db_file}' AS db2")
 
         # Основная таблица с приоритетом RMA > Prod
         cur_out.execute("DROP TABLE IF EXISTS merged_prod_line")
@@ -98,7 +111,8 @@ class SqliteDB:
         conn_out.commit()
         conn_out.close()
 
-    def ensure_indexes_in_main_db(main_db_path):
+    def ensure_indexes_in_main_db(self, main_db_path):
+        print(f'ensure_indexes_in_main_db main_db_path:{main_db_path}')
         conn_main = sqlite3.connect(main_db_path)
         cur_main = conn_main.cursor()
 
@@ -108,131 +122,27 @@ class SqliteDB:
         conn_main.commit()
         conn_main.close()
 
-    def list_tables(self):
-        import sqlite3
-        conn = sqlite3.connect(self.db)
-        cursor = conn.cursor()
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        tables = [row[0] for row in cursor.fetchall()]
-        conn.close()
-        print(f"[DEBUG] Tables in DB: {tables}")
-        return tables
-
-
-    def read_table(self, tbl_name, start_date, end_date,
-                   ret_cat=None, cat=None, cat2=None, cat_val=None, cat2_val=None,
-                   excludes=None):
-        print('read_table' , tbl_name, start_date, end_date, ret_cat, cat, cat_val, excludes)
-        orig_ret_cat = []
-        if ret_cat is None:
-            ret_cat_str = '*'
-        elif isinstance(ret_cat, list):
-            orig_ret_cat = ret_cat.copy()
-
-            if 'open_date' not in ret_cat:
-                ret_cat.append('open_date')
-            ret_cat_str = ', '.join(ret_cat)
-        else:
-            # Если по ошибке передали строку — просто используем её
-            ret_cat_str = ret_cat
-
-        conn = sqlite3.connect(self.db)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-
-        query = f"SELECT {ret_cat_str} FROM {tbl_name} WHERE (open_date BETWEEN ? AND ?)"
-        params = [start_date, end_date]
-
-        if excludes:
-            print(f'{type(excludes)}, {type(orig_ret_cat)}')
-            for excl in excludes:
-                print(f'{type(excl)} , {excl}')
-                placeholders = ', '.join(['?'])
-                query += f" AND {placeholders} NOT IN ({orig_ret_cat[0]})"
-                params.extend([excl]) ## convert string to list
-
-
-        # if cat:
-        #     query += f" AND {cat} = ?"
-        #     params.append(cat_val)
-        if cat:
-            if isinstance(cat_val, list):
-                placeholders = ', '.join(['?'] * len(cat_val))
-                query += f" AND {cat} IN ({placeholders})"
-                params.extend(cat_val)
-            else:
-                query += f" AND {cat} = ?"
-                params.append(cat_val)
-
-        # if cat2:
-        #     query += f" AND {cat2} = ?"
-        #     params.append(cat2_val)
-        if cat2:
-            if isinstance(cat2_val, list):
-                placeholders = ', '.join(['?'] * len(cat2_val))
-                query += f" AND {cat2} IN ({placeholders})"
-                params.extend(cat2_val)
-            else:
-                query += f" AND {cat2} = ?"
-                params.append(cat2_val)
-
-        query += " ORDER BY open_date DESC;"
-
-        print('qry: ',query, 'params: ', params, '\n')
-        cursor.execute(query, params)
-
-        rows = [dict(row) for row in cursor.fetchall()]
-        #print('rows: ', rows, '\n')
-        # Commit changes and close the connection
-        conn.commit()
-        conn.close()
-
-
-        with open(f'c:/temp/{tbl_name}.json', 'w') as f:
-            f.write("Headers" + '\n')
-            for row in rows:
-                #print(row)
-                f.write(str(row)+'\n')
-        #print(f'read table type(rows):{type(rows)}')
-        return rows
 
 
 
-
-    def read_period_counts(self, tbl_name, start_date, end_date, period='month'):
-        print(f'\nread_period_counts {start_date}, {end_date}, {period}')
-        conn = sqlite3.connect(self.db)
-        cursor = conn.cursor()
-
-        if period == 'month':
-            date_expr = "strftime('%Y-%m', open_date)"
-        elif period == 'week':
-            # set sunday as first week day
-            date_expr = "strftime('%Y-%m-%d', date(open_date, '-' || ((strftime('%w', open_date) + 0) % 7) || ' days'))"
-        else:
-            raise ValueError("period must be 'month' or 'week'")
-
-        query = f"""
-            SELECT {date_expr} AS period, COUNT(*) as count
-            FROM {tbl_name}
-            WHERE open_date BETWEEN ? AND ?
-            GROUP BY period
-            ORDER BY period;
-        """
-
-        params = [start_date, end_date]
-
-        cursor.execute(query, params)
-        result = [{'period': row[0], 'count': row[1]} for row in cursor.fetchall()]
-
-        conn.close()
-
-        print(f'read_period_counts type(result):{type(result)}')
-        return result
 
 if __name__ == '__main__':
-    db = SqliteDB()
-    db.get_qsfc_prod_lines()
-    db.get_tcc_catalogs()
+    # db_path = os.path.dirname(os.path.abspath(__file__))
+    # db_name = 'db_aoi.db'
+
+    tcc_path = os.path.abspath('c:/ate-controlcenter') # os.path.join('c:/ate-controlcenter', 'jerAteStats.db')
+    sql_obj = SqliteDB()
+    #('c:/ate-controlcenter', 'jerAteStats.db')
+    qsfc_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'qsfc')
+    sql_obj.get_qsfc_prod_lines(qsfc_path)
+    sql_obj.get_tcc_catalogs(tcc_path)
+
+    tcc_db_file = os.path.join(tcc_path, "jerAteStats.db")
+    qsfc_db_file = os.path.join(qsfc_path, 'db_qsfc.db')
+    date_from = "2024-01-01"
+    date_upto = "2025-12-31"
+    output_db_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "merged_prod_line.db")
+    sql_obj.ensure_indexes_in_main_db(qsfc_db_file)
+    sql_obj.create_merged_prod_line_with_priority(qsfc_db_file, tcc_db_file, output_db_file, date_from, date_upto)
 
 

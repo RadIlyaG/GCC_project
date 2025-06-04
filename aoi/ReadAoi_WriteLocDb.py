@@ -1,11 +1,10 @@
+import os
 import socket
 import urllib3
-import urllib.parse
 import certifi
-import re
 import json
-from datetime import date, timedelta, datetime
-from aoi_sql_db_rw import SqliteDB
+from datetime import date, timedelta
+from utils.sql_db_rw import SqliteDB
 
 
 class Aoi:
@@ -73,7 +72,7 @@ if __name__ == '__main__':
     aoi = Aoi()
     aoi.print_rtext = True
     #df = []
-    days_ago = 8; # config['days_ago']
+    days_ago = 4; # config['days_ago']
     date_from_string = str((date.today() - timedelta(days=days_ago)).strftime("%d/%m/%Y"), ) #'08/04/2024'  #
     today_date_string = date.today().strftime('%d/%m/%Y') #'09/04/2024' #
 
@@ -86,5 +85,8 @@ if __name__ == '__main__':
         print('ee', df[1])
         exit(df[1])
     else:
-        tbl = SqliteDB()
-        tbl.fill_table("AOI_data", df)
+        db_path = os.path.dirname(os.path.abspath(__file__))
+        db_file_name = 'db_aoi.db'
+        sql_obj = SqliteDB()
+        sql_obj.db_name(db_path, db_file_name)
+        sql_obj.fill_table("AOI_data", df)
