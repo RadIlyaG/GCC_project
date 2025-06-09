@@ -37,7 +37,7 @@ def create_app(data):
                             {'label': 'NFF', 'value': 'nff'},
                             {'label': 'DOA', 'value': 'doa'},
                             {'label': 'Product Line', 'value': 'product_line'},
-                            {'label': 'Catalog', 'value': 'catalog'},
+                            {'label': 'Mkt Item', 'value': 'mkt_item'},
                             {'label': 'CSL', 'value': 'csl'},
                             {'label': 'Customer', 'value': 'customers_name'},
                             {'label': 'Fail Desc.', 'value': 'failure_desc'},
@@ -323,7 +323,7 @@ def register_callbacks(app):
             #         options['tit'] = f'All {triggered_lbl} of {tat_category}',
             #         df = sql.read_table('RMA', date_from, date_upto, ret_cat=[tat_category], cat=ret_cat, cat_val=[triggered_lbl])
             #         fig = dp.by_category(df, **options)
-            # if ret_cat == 'catalog':
+            # if ret_cat == 'mkt_item':
             #     if tat_category == 'customers_name':
             #         options['cat'] = tat_category
             #         options['tit'] = f'{triggered_lbl} per {tat_category}',

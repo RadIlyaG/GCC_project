@@ -39,7 +39,7 @@ class SqliteDB:
 
         columns = list(data[0].keys())
         columns_def = ", ".join([f"{col} TEXT" for col in columns])
-        cursor.execute(f"DROP TABLE IF EXISTS {tbl_name};")
+        #cursor.execute(f"DROP TABLE IF EXISTS {tbl_name};")
         cursor.execute(f"CREATE TABLE IF NOT EXISTS {tbl_name} ({columns_def})")
         # Dynamically insert data
         placeholders = ", ".join(["?" for _ in columns])
@@ -51,6 +51,20 @@ class SqliteDB:
         # Save changes and close connection
         conn.commit()
         conn.close()
+
+    def get_last_date(self, tbl_name, tst_field):
+        conn = sqlite3.connect(self.db)
+        cursor = conn.cursor()
+
+        query = f"SELECT MAX({tst_field}) from {tbl_name}"
+        cursor.execute(query)
+        last_date =  cursor.fetchall()[0][0].split(" ")[0]
+
+        conn.commit()
+        conn.close()
+
+        return last_date
+
 
 
 

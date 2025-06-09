@@ -3,6 +3,7 @@ import os
 import datetime
 import collections
 
+import utils.sql_db_rw
 from utils.sql_db_rw import SqliteDB as sqldb
 
 
@@ -29,7 +30,7 @@ class SqliteDB(sqldb):
         print(f"[DEBUG] Tables in DB: {tables}")
         return tables
 
-    def fill_table(self, tbl_name, data):
+    def ne_fill_table(self, tbl_name, data):
         conn = sqlite3.connect(self.db)
         print(conn)
         cursor = conn.cursor()
@@ -49,14 +50,14 @@ class SqliteDB(sqldb):
         #     CREATE TABLE IF NOT EXISTS qry_type (
         #         form_number TEXT PRIMARY KEY,
         #         customers_full_name TEXT,
-        #         catalog TEXT
+        #         mkt_item TEXT
         #     )
         # """)
         # for row in data:
         #     cursor.execute("""
-        #         INSERT INTO qry_type (form_number, customers_full_name, catalog)
+        #         INSERT INTO qry_type (form_number, customers_full_name, mkt_item)
         #         VALUES (?, ?, ?)
-        #     """, (row['form_number'], row['customers_full_name'], row['catalog']))
+        #     """, (row['form_number'], row['customers_full_name'], row['mkt_item']))
 
         # Сохраняем изменения и закрываем соединение
         conn.commit()

@@ -247,16 +247,16 @@ options = {
 # df = sql.read_table('RMA', date_from, date_upto, ret_cat=['customers_name'])
 #dp.by_category(df, **options)
 
-## which catalog shipped as NFF
-## Swhow me all 'catalog' where 'nff' is '1'
+## which mkt_item shipped as NFF
+## Swhow me all 'mkt_item' where 'nff' is '1'
 options = {
-    'cat' : 'catalog',
-    'tit': 'NFF by catalog',
-    'xaxis_tit' : 'NFF by catalog',
+    'cat' : 'mkt_item',
+    'tit': 'NFF by mkt_item',
+    'xaxis_tit' : 'NFF by mkt_item',
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
 }
-# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['catalog'], cat='nff', cat_val='1')
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['mkt_item'], cat='nff', cat_val='1')
 # dp.by_category(df, **options)
 
 
@@ -326,13 +326,13 @@ options = {
 
 ## Show me all 'doa'  where 'customers_name' is CANCOM GMBH
 options = {
-    'cat' : 'catalog',
+    'cat' : 'mkt_item',
     'tit': 'Catalog DOA CANCOM GMBH',
     'xaxis_tit' : 'DOA CANCOM GMBH',
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
 }
-# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['catalog', 'doa'], cat='customers_name', cat_val='CANCOM GMBH',cat2='doa', cat2_val='1')
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['mkt_item', 'doa'], cat='customers_name', cat_val='CANCOM GMBH',cat2='doa', cat2_val='1')
 # dp.by_category(df, **options)
 # dp.by_cat_day(df, **options)
 
@@ -414,16 +414,16 @@ options = {
 # df = sql.read_table('RMA', date_from, date_upto, ret_cat=['customers_name'], cat='repair_types', cat_val='Non Repairable')
 # dp.by_category(df, **options)
 
-##  Non Repairable units per "catalog"
-## Show me all 'catalog' where 'repair_types' is 'Non Repairable'
+##  Non Repairable units per "mkt_item"
+## Show me all 'mkt_item' where 'repair_types' is 'Non Repairable'
 options = {
-    'cat' : 'catalog',
-    'tit': 'Non Repairable units per catalog',
-    'xaxis_tit' : 'Catalog',
+    'cat' : 'mkt_item',
+    'tit': 'Non Repairable units per mkt_item',
+    'xaxis_tit' : 'mkt_item',
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
 }
-# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['catalog'], cat='repair_types', cat_val='Non Repairable')
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['mkt_item'], cat='repair_types', cat_val='Non Repairable')
 # dp.by_category(df, **options)
 
 
@@ -467,14 +467,14 @@ options = {
 
 ## 2.1 Show me when and how many product_line=ETX-203AX were sent
 options = {
-    'cat' : 'catalog',
+    'cat' : 'mkt_item',
     'tit': 'RMAs of ETX-203AX',
     'xaxis_tit' : 'Reference',
     'yaxis_tit' : 'Quantity',
     'chart_type' : 'bar',
     'drill_plot_only' : False,
 }
-df = sql.read_table('RMA', date_from, date_upto, ret_cat=['catalog'], cat='catalog', cat_val=['LINE ETX-203AX_FTR/GE30/SFP30NULL/2UTP2SFP'], cat2='csl', cat2_val=['E'])
+df = sql.read_table('RMA', date_from, date_upto, ret_cat=['mkt_item'], cat='mkt_item', cat_val=['LINE ETX-203AX_FTR/GE30/SFP30NULL/2UTP2SFP'], cat2='csl', cat2_val=['E'])
 # dp.by_category(df, **options)
 dp.by_cat_day(df, **options)
 
@@ -607,16 +607,16 @@ options = {
 # df = sql.read_table('RMA', date_from, date_upto, ret_cat=['location'])
 # dp.by_category(df, **options)
 
-## 6.2 Show me all 'catalog' where 'location' is 'MH'
+## 6.2 Show me all 'mkt_item' where 'location' is 'MH'
 options = {
-    'cat' : 'catalog',
-    'tit': 'RMAs by catalog for location MH',
-    'xaxis_tit' : 'catalog',
+    'cat' : 'mkt_item',
+    'tit': 'RMAs by mkt_item for location MH',
+    'xaxis_tit' : 'mkt_item',
     'yaxis_tit' : 'Quantity',
     'chart_type' : ['bar'],
 
 }
-# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['catalog'], cat='location', cat_val='MH')
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['mkt_item'], cat='location', cat_val='MH')
 # dp.by_category(df, **options)
 
 ## 6.3 Show me all 'product_line' where 'location' is 'MH'
@@ -644,13 +644,13 @@ options = {
 # df = sql.read_table('RMA', date_from, date_upto, ret_cat=['customers_name'], cat='nff', cat_val='1')
 # dp.by_category(df, **options)
 
-## 7.2.2 Show me all 'catalog' which sent 'nff'
+## 7.2.2 Show me all 'mkt_item' which sent 'nff'
 options = {
-    'cat' : 'catalog',
-    'tit': 'NFF by Catalog',
-    'xaxis_tit' : 'Catalog',
+    'cat' : 'mkt_item',
+    'tit': 'NFF by mkt_item',
+    'xaxis_tit' : 'mkt_item',
     'yaxis_tit' : 'Quantity',
     'chart_type' : ['bar'],
 }
-# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['catalog'], cat='nff', cat_val='1')
+# df = sql.read_table('RMA', date_from, date_upto, ret_cat=['mkt_item'], cat='nff', cat_val='1')
 # dp.by_category(df, **options)

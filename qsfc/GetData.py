@@ -48,10 +48,10 @@ if __name__ == '__main__':
 
             # if dicti['reporter_name']=='YEHOSHAFAT RAZIEL':
             #     pass; #res_list.append(dicti)
-            # if re.search('ETX-220A', dicti['catalog']):
+            # if re.search('ETX-220A', dicti['mkt_item']):
             #     pass; #res_list.append(dicti)
 
-            # if dicti['reporter_name']=='YEHOSHAFAT RAZIEL' and not re.search('ETX-220A', dicti['catalog']):
+            # if dicti['reporter_name']=='YEHOSHAFAT RAZIEL' and not re.search('ETX-220A', dicti['mkt_item']):
             #     pass; #res_list.append(dicti)
             #     #print(dicti)
 
@@ -64,8 +64,8 @@ if __name__ == '__main__':
         #dp.by_day(list_of_dicts)
         dp = DrawPlot()
         #dp.by_string(list_of_dicts, 'reporter_name', 'RMAs by Reporter Name', 'Quantity', 'Reporter')
-        #dp.by_string(list_of_dicts, 'tested_catalog', 'Prod by tested_catalog', 'Quantity', 'cat')
-        #dp.by_string(list_of_dicts, 'catalog', 'RMAs by catalog', 'Quantity', 'Catalog')
+        #dp.by_string(list_of_dicts, 'tested_mkt_item', 'Prod by tested_mkt_item', 'Quantity', 'cat')
+        #dp.by_string(list_of_dicts, 'mkt_item', 'RMAs by mkt_item', 'Quantity', 'mkt_item')
         dp.by_string(list_of_dicts, 'customers_name', 'RMAs by customer', 'Quantity', 'Customer')
         dp.by_customer_day(list_of_dicts)
         #dp.by_day(list_of_dicts)
@@ -75,7 +75,7 @@ if __name__ == '__main__':
         # DrawPlot_byCustomerDay(list_of_dicts)
         # DrawPlot_byCatalog(list_of_dicts)
         #DrawPlot_byString(list_of_dicts, 'customers_full_name', 'RMAs by customer', 'Quantity', 'Customer')
-        #DrawPlot_byString(list_of_dicts, 'catalog', 'RMAs by catalog', 'Quantity', 'Catalog')
+        #DrawPlot_byString(list_of_dicts, 'mkt_item', 'RMAs by mkt_item', 'Quantity', 'mkt_item')
         #DrawPlot_byString(list_of_dicts, 'reporter_name', 'RMAs by Reporter Name', 'Quantity', 'Reporter')
         #__DrawPlot_byCat(list_of_dicts)
 

@@ -44,7 +44,7 @@ def create_app(data):
                             {'label': 'NFF', 'value': 'nff'},
                             {'label': 'DOA', 'value': 'doa'},
                             {'label': 'Product Line', 'value': 'product_line'},
-                            {'label': 'Catalog', 'value': 'catalog'},
+                            {'label': 'Mkt Item', 'value': 'mkt_item'},
                             {'label': 'CSL', 'value': 'csl'},
                             {'label': 'Customer', 'value': 'customers_name'},
                             {'label': 'Fail Desc.', 'value': 'failure_desc'},

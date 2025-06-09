@@ -2,17 +2,14 @@ import os
 import time
 import re
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from pathlib import Path
 import subprocess
 import socket
 import json
 import webbrowser
-#import serial
-
-#import lib_radapps_1pDownload as radapps
-
-# import app_logger
-# logger = app_logger.get_logger(__name__)
+#from utils.mdl_logger import get_logger
+import logging
 
 
 class Gen:
@@ -113,6 +110,8 @@ class Gen:
         subprocess.Popen([f'aplay /home/ilya/Wav/{sound}'], shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE, text=True)
 
+
+
 class FormatDates:
     def __init__(self):
         pass
@@ -126,3 +125,29 @@ class FormatDates:
     def format_date_from_iso(self, date):  # from '2024-06-15' → '15/06/2024'
         date_obj = datetime.strptime(date, '%Y-%m-%d')
         return date_obj.strftime('%d/%m/%Y')
+
+    def get_next_day(self, last_date):
+        date_obj = datetime.strptime(last_date, '%Y-%m-%d')
+        new_date = date_obj + relativedelta(days=1)
+        new_date_str = new_date.strftime('%d/%m/%Y')
+        # if new_date>date_obj:
+        #     print(f'get_next_day1 last_date:{last_date}, new_date_str:{new_date_str}')
+        #     return self.format_date_from_iso(last_date)
+        # else:
+        #     pass
+        # print(f'get_next_day2 last_date:{last_date}, new_date_str:{new_date_str}')
+        return new_date_str
+
+
+def timer(func):
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter()
+        result = func(*args, **kwargs)
+        end = time.perf_counter()
+        time_res = f"Function {func.__name__} {args[1:]} done during {end - start:.4f} sec"
+        #logger = get_logger(__name__, 'temp_log.html')
+        logger = logging.getLogger(__name__)
+        logger.info(time_res)
+        return result
+
+    return wrapper

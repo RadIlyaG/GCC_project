@@ -39,7 +39,7 @@ class SqliteDB(sqldb):
         conn.close()
         return rows
 
-    def get_tcc_catalogs(self, tcc_path):
+    def get_tcc_mkt_items(self, tcc_path):
         sql_obj = sqldb()
         tcc_db_file = sql_obj.db_name(tcc_path, 'jerAteStats.db')
         conn = sqlite3.connect(tcc_db_file)
@@ -79,14 +79,14 @@ class SqliteDB(sqldb):
             WITH product_lines AS (
                 SELECT t.UutName AS product, r.product_line, 1 AS priority
                 FROM db2.tbl t
-                LEFT JOIN main_db.RMA r ON r.catalog = t.UutName
+                LEFT JOIN main_db.RMA r ON r.mkt_item = t.UutName
                 WHERE date(REPLACE(t.Date, '.', '-')) BETWEEN date(?) AND date(?)
 
                 UNION ALL
 
                 SELECT t.UutName AS product, p.product_line, 2 AS priority
                 FROM db2.tbl t
-                LEFT JOIN main_db.Prod p ON p.tested_catalog = t.UutName
+                LEFT JOIN main_db.Prod p ON p.tested_mkt_item = t.UutName
                 WHERE date(REPLACE(t.Date, '.', '-')) BETWEEN date(?) AND date(?)
             )
             SELECT product, product_line
@@ -102,8 +102,8 @@ class SqliteDB(sqldb):
             CREATE TABLE missing_product_line AS
             SELECT DISTINCT t.UutName AS product
             FROM db2.tbl t
-            LEFT JOIN main_db.RMA r ON r.catalog = t.UutName
-            LEFT JOIN main_db.Prod p ON p.tested_catalog = t.UutName
+            LEFT JOIN main_db.RMA r ON r.mkt_item = t.UutName
+            LEFT JOIN main_db.Prod p ON p.tested_mkt_item = t.UutName
             WHERE r.product_line IS NULL AND p.product_line IS NULL
               AND date(REPLACE(t.Date, '.', '-')) BETWEEN date(?) AND date(?)
         """, (date_from, date_upto))
@@ -116,8 +116,8 @@ class SqliteDB(sqldb):
         conn_main = sqlite3.connect(main_db_path)
         cur_main = conn_main.cursor()
 
-        cur_main.execute("CREATE INDEX IF NOT EXISTS idx_rma_catalog ON RMA(catalog)")
-        cur_main.execute("CREATE INDEX IF NOT EXISTS idx_prod_tested_catalog ON Prod(tested_catalog)")
+        cur_main.execute("CREATE INDEX IF NOT EXISTS idx_rma_mkt_item ON RMA(mkt_item)")
+        cur_main.execute("CREATE INDEX IF NOT EXISTS idx_prod_tested_mkt_item ON Prod(tested_mkt_item)")
 
         conn_main.commit()
         conn_main.close()
@@ -135,7 +135,7 @@ if __name__ == '__main__':
     #('c:/ate-controlcenter', 'jerAteStats.db')
     qsfc_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'qsfc')
     sql_obj.get_qsfc_prod_lines(qsfc_path)
-    sql_obj.get_tcc_catalogs(tcc_path)
+    sql_obj.get_tcc_mkt_items(tcc_path)
 
     tcc_db_file = os.path.join(tcc_path, "jerAteStats.db")
     qsfc_db_file = os.path.join(qsfc_path, 'db_qsfc.db')

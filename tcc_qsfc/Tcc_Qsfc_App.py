@@ -16,7 +16,7 @@ def create_app():
     today = date.today().isoformat()
     cb_categories_options = [
         {'label': 'Product Line', 'value': 'product_line'},
-        {'label': 'Catalog', 'value': 'catalog'},
+        {'label': 'Mkt Item', 'value': 'mkt_item'},
     ]
     cb_categories_options.sort(key=lambda x: x['label'])
 

@@ -140,20 +140,6 @@ class MainMenu(tk.Menu):
         tools_menu = tk.Menu(self, tearoff=0)
         tools_menu.add_command(label="Setup Downloaded Package")
         tools_menu.add_separator()
-        # self.pwr_menu = tk.Menu(tools_menu, tearoff=0)
-        # self.pwr_menu.add_command(label="PS ON", command=lambda: appwin.gen.gui_Power(1, 1))
-        # self.pwr_menu.add_command(label="PS OFF", command=lambda: appwin.gen.gui_Power(1, 0))
-        # self.pwr_menu.add_command(label="PS OFF and ON", command=lambda: appwin.gen.gui_PowerOffOn(1))
-        # tools_menu.add_cascade(label="Power", menu=self.pwr_menu)
-        # tools_menu.add_separator()
-        # self.rmz_menu = tk.Menu(tools_menu, tearoff=0)
-        # self.rmz_menu.add_command(label="All ON", command=lambda: ramz.ramzor("all", "1"))
-        # self.rmz_menu.add_command(label="All OFF", command=lambda: ramz.ramzor("all", "0"))
-        # self.rmz_menu.add_command(label="Red ON", command=lambda: ramz.ramzor("red", "1"))
-        # self.rmz_menu.add_command(label="Red OFF", command=lambda: ramz.ramzor("red", "0"))
-        # self.rmz_menu.add_command(label="Green ON", command=lambda: ramz.ramzor("green", "1"))
-        # self.rmz_menu.add_command(label="Green OFF", command=lambda: ramz.ramzor("green", "0"))
-        # tools_menu.add_cascade(label="Ramzor", menu=self.rmz_menu)
         self.add_cascade(label="Tools", menu=tools_menu)
 
         terminal_menu = tk.Menu(self, tearoff=0)
@@ -202,45 +188,45 @@ class MainFrame(tk.Frame):
         pass
 
 
-class StartFromFrame(tk.Frame):
-    '''Create the StartFrom Frame on base of tk.Frame'''
-    def __init__(self, parent, mainapp):
-        super().__init__(parent)
-        print(f'StartFromFrame, self:<{self}>, parent:<{parent}>, mainapp:<{mainapp}>')
-        self.parent = parent
-        self['relief'] = self.master['relief']
-        self['bd'] = self.master['bd']
-        self.put_widgets()
-        self.mainapp = mainapp
-
-    def put_widgets(self):
-        self.lab_start_from = ttk.Label(self, text="Start from ")
-
-        self.var_start_from = tk.StringVar()
-        self.cb_start_from = ttk.Combobox(self, justify='center', width=20, textvariable=self.var_start_from)
-
-        # script_dir = os.path.dirname(__file__)
-        # self.img = Image.open(os.path.join('./../gen_lib', "images", "run1.gif"))
-        # use_img = ImageTk.PhotoImage(self.img)
-        # self.b_start = ttk.Button(self, text="Start", image=use_img, command=partial(self.button_run))
-        # self.b_start.image = use_img
-        #
-        # self.img = Image.open(os.path.join('./../gen_lib', "images", "stop1.gif"))
-        # use_img = ImageTk.PhotoImage(self.img)
-        # self.b_stop = ttk.Button(self, text="Stop", image=use_img, command=partial(self.button_stop))
-        # self.b_start.b_stop = use_img
-
-        self.lab_curr_test = ttk.Label(self, text='Current Test:')
-        self.var_curr_test = tk.StringVar()
-        self.lab_curr_test_val = ttk.Label(self, width=20, relief=tk.SUNKEN, anchor="center",
-                                           textvariable=self.var_curr_test)
-
-        self.lab_start_from.pack(side='left', padx='2')
-        self.cb_start_from.pack(side='left', padx='2')
-        # self.b_start.pack(side='left', padx='2')
-        # self.b_stop.pack(side='left', padx='2')
-        self.lab_curr_test.pack(side='left', padx='2')
-        self.lab_curr_test_val.pack(side='left', padx='2')
+# class StartFromFrame(tk.Frame):
+#     '''Create the StartFrom Frame on base of tk.Frame'''
+#     def __init__(self, parent, mainapp):
+#         super().__init__(parent)
+#         print(f'StartFromFrame, self:<{self}>, parent:<{parent}>, mainapp:<{mainapp}>')
+#         self.parent = parent
+#         self['relief'] = self.master['relief']
+#         self['bd'] = self.master['bd']
+#         self.put_widgets()
+#         self.mainapp = mainapp
+#
+#     def put_widgets(self):
+#         self.lab_start_from = ttk.Label(self, text="Start from ")
+#
+#         self.var_start_from = tk.StringVar()
+#         self.cb_start_from = ttk.Combobox(self, justify='center', width=20, textvariable=self.var_start_from)
+#
+#         # script_dir = os.path.dirname(__file__)
+#         # self.img = Image.open(os.path.join('./../gen_lib', "images", "run1.gif"))
+#         # use_img = ImageTk.PhotoImage(self.img)
+#         # self.b_start = ttk.Button(self, text="Start", image=use_img, command=partial(self.button_run))
+#         # self.b_start.image = use_img
+#         #
+#         # self.img = Image.open(os.path.join('./../gen_lib', "images", "stop1.gif"))
+#         # use_img = ImageTk.PhotoImage(self.img)
+#         # self.b_stop = ttk.Button(self, text="Stop", image=use_img, command=partial(self.button_stop))
+#         # self.b_start.b_stop = use_img
+#
+#         self.lab_curr_test = ttk.Label(self, text='Current Test:')
+#         self.var_curr_test = tk.StringVar()
+#         self.lab_curr_test_val = ttk.Label(self, width=20, relief=tk.SUNKEN, anchor="center",
+#                                            textvariable=self.var_curr_test)
+#
+#         self.lab_start_from.pack(side='left', padx='2')
+#         self.cb_start_from.pack(side='left', padx='2')
+#         # self.b_start.pack(side='left', padx='2')
+#         # self.b_stop.pack(side='left', padx='2')
+#         self.lab_curr_test.pack(side='left', padx='2')
+#         self.lab_curr_test_val.pack(side='left', padx='2')
 
 
 class InfoFrame(tk.Frame):
@@ -1050,15 +1036,16 @@ if __name__ == '__main__':
     date_from = gen.format_date_to_uso('01/01/2020')
     #date_upto = date.today().strftime('%d/%m/%Y')
     date_upto = gen.format_date_to_uso(date.today().strftime('%d/%m/%Y'))
-    sql = SqliteDB()
-    sql.list_tables()
+    sql_obj = SqliteDB()
+    sql_obj.db_name(os.path.dirname(os.path.abspath(__file__)), 'db_qsfc.db')
+    sql_obj.list_tables()
 
 
     for tbl_name, lab_name in zip(["RMA", "Prod"], ['rma', 'pro']):
         print(f'df_{lab_name} tbl_{tbl_name}')
 
-    df_rma = sql.read_table('RMA', date_from, date_upto)
-    df_pro = sql.read_table('Prod', date_from, date_upto)
+    df_rma = sql_obj.read_table('RMA', date_from, date_upto)
+    df_pro = sql_obj.read_table('Prod', date_from, date_upto)
     all_dates = sorted({row['open_date'] for row in df_rma})
     #print(all_dates)
     date_from = min(all_dates).split(' ')[0]

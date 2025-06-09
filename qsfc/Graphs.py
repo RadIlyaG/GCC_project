@@ -134,7 +134,7 @@ class DrawPlot:
             return fig_bar
 
     '''
-    kwargs['cat']     :  fields of DB (product_line, catalog, customer_name, ...)
+    kwargs['cat']     :  fields of DB (product_line, mkt_item, customer_name, ...)
     kwargs['subcat']  :  one value of cat. if cat==product_line then subcat may be ETX-203AX or SecFlow-1p or MP-DATA Modules
     kwargs['cat2'] :  an additional field we cat filter the cat. if cat==product_line and subcat is ETX-203AX,
                          then subcat2 may be location (for Reference U3, D1..) or rma_kind_desc
