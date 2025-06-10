@@ -87,7 +87,7 @@ class Aoi:
             return False, url
 
 if __name__ == '__main__':
-    # https://ws-proxy01.rad.com:8445/ATE_WS/ws/misc/GCC_AOI?start_date=08/04/2024&end_date=09/04/2024
+    # https://ws-proxy01.rad.com:8445/ATE_WS/ws/misc/GCC_AOI?start_date=05/06/2025&end_date=10/06/2025
     setup_logger('read_aoi.db_log.html')
     logger = logging.getLogger(__name__)
 
@@ -97,6 +97,14 @@ if __name__ == '__main__':
     days_ago = 180; # config['days_ago']
 
     for st, en in ('01/01/2025', '28/02/2025'), ('01/03/2025', '31/05/2025'):
+        pass
+    for st, en in ('29/05/2025', '29/05/2025'),:
+        pass
+    for st, en in (('01/01/2025', '31/01/2025'), ('01/02/2025', '28/02/2025'),
+                   ('01/03/2025', '31/03/2025'), ('01/04/2025', '30/04/2025'),
+                   ('01/05/2025', '31/05/2025')):
+        pass
+    for st, en in ('29/05/2025', '29/05/2025'),:
         date_from_string = st #'09/04/2025' # str((date.today() - timedelta(days=days_ago)).strftime("%d/%m/%Y"), ) #'08/04/2024'  #
         today_date_string = en #'01/06/2025' # date.today().strftime('%d/%m/%Y') #'09/04/2024' #
 
@@ -114,5 +122,5 @@ if __name__ == '__main__':
             db_file_name = f'db_aoi.db'
             sql_obj = SqliteDB()
             sql_obj.db_name(db_path, db_file_name)
-            sql_obj.fill_table("AOI_data", df)
+            sql_obj.fill_table("AOI_data", df, chk_exist='yes')
             logger.info(f'AOI Data between {date_from_string} and {today_date_string} has been inserted successfully')

@@ -150,6 +150,6 @@ if __name__ == '__main__':
             else:
                 #sql_obj = SqliteDB()
                 #sql_obj.db_name(os.path.dirname(os.path.abspath(__file__)), 'db_qsfc.db')
-                sql_obj.fill_table(tbl_name, df)
+                sql_obj.fill_table(tbl_name, df, chk_exist='no')
                 logger.info(f'QSFC Data from {tbl_name} between {date_from_string} and {today_date_string} '
                            f'has been inserted successfully')

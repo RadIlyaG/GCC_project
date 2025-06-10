@@ -61,7 +61,7 @@ def read_qsfc_data_bases():
                 log_txt = f'Error during get QSFC {tbl_name} Data, {df[1]}'
                 logger.error(log_txt)
             else:
-                sql_obj.fill_table(tbl_name, df)
+                sql_obj.fill_table(tbl_name, df, chk_exist='yes')
                 log_txt = (f'QSFC Data from {tbl_name} between {date_from_string} and {today_date_string} '
                            f'has been inserted successfully')
                 logger.info(log_txt)
@@ -98,7 +98,7 @@ def read_aoi_data_bases():
             # db_file_name = f'db_aoi.db'
             # sql_obj = SqliteDB()
             # sql_obj.db_name(db_path, db_file_name)
-            sql_obj.fill_table("AOI_data", df)
+            sql_obj.fill_table("AOI_data", df, chk_exist='yes')
             log_txt = f'AOI Data between {date_from_string} and {today_date_string} has been inserted successfully'
             logger.info(log_txt)
 
