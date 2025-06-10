@@ -17,11 +17,11 @@ Recommended approach: with dependency installation:
 - Navigate to the project folder:<br>
 cd GCC_Project<br>
 - Create a virtual environment:<br>
-python -m venv .venv
+C:\Users\ate-j-r\AppData\Local\Programs\Python\Python310-32\python -m venv .venv
 - Activate it:<br>
-.\\.venv\Scripts\activate
+\.venv\Scripts\activate
 - install required packages:<br>
-pip install -r requirements.txt
+C:\Users\ate-j-r\AppData\Local\Programs\Python\Python310-32\Scripts\pip install -r requirements.txt
 
 #### ✅ How to create a desktop shortcut
 Right-click on your desktop → New → Shortcut
