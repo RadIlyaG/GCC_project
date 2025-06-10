@@ -2,13 +2,22 @@ import os, sys
 from datetime import date, timedelta, datetime
 import logging
 
-import utils.lib_gen as gen
-import utils.mdl_logger
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'utils')))
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+from utils import lib_gen as gen
+from utils import lib_DialogBox as dbox
+
+# import utils.lib_gen as gen
+# import utils.mdl_logger
 import qsfc.ReadQsfc_WriteLocDb as qsfc_mdl
 import aoi.ReadAoi_WriteLocDb as aoi_ml
+
 from utils.mdl_logger import setup_logger
 
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) # -> ...\GCC_Project
+#PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) # -> ...\GCC_Project
 #this_folder = os.path.dirname(os.path.abspath(__file__)) # -> ...\GCC_Project\Read_DataBases
 this_folder = os.path.abspath('//prod-svm1/tds/gcc/db')
 #print(tds_db_folder)
