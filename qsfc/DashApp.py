@@ -1,24 +1,14 @@
 # drilldown_app.py
 import os
 import dash
-# from click import style
 from dash import dcc, html, dash_table, Input, Output, State, callback_context
 import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
 from datetime import date, timedelta, datetime
 from dateutil.relativedelta import relativedelta
-# import os
-# import signal
 import plotly.graph_objects as go
 
 import utils.sql_db_rw
-# from collections import defaultdict
-# import time
-# import threading
-# import requests
-# import tkinter as tk
-# from tkinter import messagebox
-# import flask
 
 from GetData import Qsfc, DrawPlot
 from sql_db_rw import SqliteDB
@@ -27,7 +17,7 @@ shutdown_flag = {"exit": False}
 today = date.today().isoformat()
 
 
-def create_app(data):
+def create_app():
     app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
     #app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
     app.title = "QSFC Data Visualisation"
@@ -113,73 +103,10 @@ def create_app(data):
 
                             dbc.Button("Apply dates", id='apply_dates', n_clicks=0,
                                        className='mr-2',),
-                            dbc.Button('Draw Graph', id='get_data', n_clicks=0,
+                            dbc.Button('Draw/Redraw Graph', id='get_data', n_clicks=0,
                                        className='mr-2'),
 
-                            # dbc.Col(
-                            #     html.Div([
-                            #         dcc.Dropdown(
-                            #             id='cb_all_when',
-                            #             options=[
-                            #                 {'label': 'Per Category', 'value': 'all'},
-                            #                 {'label': 'Per Date', 'value': 'when'},
-                            #             ],
-                            #             value='all',  # default value
-                            #             clearable=False,  # can't clear the entry
-                            #             multi=False
-                            #         ),
-                            #         html.Br(),
-                            #         dcc.Dropdown(
-                            #             id='cb_period',
-                            #             options=[
-                            #                 {'label': 'Per Month', 'value': 'month'},
-                            #                 {'label': 'Per Week', 'value': 'week'},
-                            #             ],
-                            #             value='month',  # default value
-                            #             clearable=False,  # can't clear the entry
-                            #             multi=False,
-                            #             style={'visibility': 'hidden'}
-                            #         ),
-                            #     ]),
-                            #     width=2, style={
-                            #         'border': '2px groove gray',
-                            #         'padding': '10px',
-                            #         'margin': '10px'
-                            #     }
-                            # ),
-                            # dbc.Col(
-                            #     html.Div([
-                            #         dcc.Dropdown(
-                            #             id='dropdown-categories',
-                            #             options=cb_categories_options,
-                            #             value='product_line',  # default value
-                            #             clearable=False,  # can't clear the entry
-                            #             multi=False
-                            #         ),
-                            #         html.Label("Drill down by: ", style={'font-size': '16px'}),
-                            #         dcc.Dropdown(
-                            #             id='cb_tat_categories',
-                            #             options=cb_tatcategories_options,
-                            #             value='None',  # default value
-                            #             clearable=False,  # can't clear the entry
-                            #             multi=False
-                            #         ),
-                            #         html.Label("Drill even deeply: ", style={'font-size': '16px'}),
-                            #         dcc.Dropdown(
-                            #             id='cb_tat2_categories',
-                            #             options=cb_tatcategories_options,
-                            #             value='None',  # default value
-                            #             clearable=False,  # can't clear the entry
-                            #             multi=False
-                            #         ),
-                            #     ]),
-                            #     width=2, style={
-                            #         'border': '2px groove darkblue',
-                            #         'padding': '10px',
-                            #         'margin': '10px',
-                            #         'border-radius': '5px'
-                            #     }
-                            # ),
+
 
 
                         ],
@@ -273,41 +200,6 @@ def create_app(data):
     return app
     
 def register_callbacks(app):
-    # @app.callback(
-    #     [Input('apply_dates', 'n_clicks')],
-    #     [State('date-picker-from', 'value'),
-    #     State('date-picker-upto', 'value')])
-    # def update_output(n, start_date, end_date):
-    #     print('apply_dates','n:', n, start_date, end_date)
-    #     string_prefix = 'You have selected: '
-    #     if start_date is not None:
-    #         try:
-    #             start_date_object = date.fromisoformat(start_date)
-    #         except ValueError:
-    #             string_prefix = string_prefix + 'Start Date: ' + start_date + ' | '
-    #         else:
-    #             start_date_string = start_date_object.strftime('%d/%m/%Y')
-    #             string_prefix = string_prefix + 'Start Date: ' + start_date_string + ' | '
-    #         #string_prefix = string_prefix + 'Start Date: ' + start_date + ' | '
-    #         #print(f'1, {string_prefix}')
-    #     if end_date is not None:
-    #         try:
-    #             end_date_object = date.fromisoformat(end_date)
-    #         except ValueError:
-    #             string_prefix = string_prefix + 'End Date: ' + end_date
-    #         else:
-    #             end_date_string = end_date_object.strftime('%d/%m/%Y')
-    #             string_prefix = string_prefix + 'End Date: ' + end_date_string
-    #         #string_prefix = string_prefix + 'End Date: ' + end_date
-    #         #print(f'2, {string_prefix}')
-    #     if len(string_prefix) == len('You have selected: '):
-    #         #return 'Select a date to see it displayed here'
-    #         pass
-    #     else:
-    #         #print(f'3, {string_prefix}')
-    #         #return ''  #string_prefix
-    #         pass
-    #
 
     @app.callback(
         [Output('main-chart', 'figure'),
@@ -538,3 +430,11 @@ def register_callbacks(app):
             return False, False
         return True, True
 
+if __name__ == "__main__":
+    app = create_app()
+    try:
+        app.run(port=8081, debug=True, use_reloader=True)  # Use reloader=False to avoid issues with reloading
+    except KeyboardInterrupt:
+        print("Server stopped by KeyboardInterrupt")
+        exit()
+        
