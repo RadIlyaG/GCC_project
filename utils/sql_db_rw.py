@@ -1,13 +1,16 @@
 import sqlite3
 import os
 import datetime
+from datetime import datetime
 import collections
 import logging
+import json
 
 import utils.lib_gen as gen
-from utils.mdl_logger import setup_logger
-setup_logger('read_dbs_log.html')
-logger = logging.getLogger(__name__)
+
+# from utils.mdl_logger import setup_logger
+# setup_logger('read_dbs_log.html')
+# logger = logging.getLogger(__name__)
 
 
 class SqliteDB:
@@ -45,12 +48,34 @@ class SqliteDB:
         values = tuple(conditions.values())
         return sql, values
 
-    def build_check_exists_query(self, table, columns):
-        where_clause = " AND ".join(f"{col}=?" for col in columns)
+    def build_check_exists_query(self, table, key_columns):
+        where_clause = " AND ".join(f"{col}=?" for col in key_columns)
         sql = f"SELECT COUNT(*) FROM {table} WHERE {where_clause}"
         return sql
 
+    def log_duplicate(self, cursor, table_name, columns, values):
+        timestamp = datetime.now().isoformat(timespec='seconds')
+        columns_str = json.dumps(columns)
+        values_str = json.dumps(values)
+        cursor.execute(
+            "INSERT INTO duplicate_log (table_name, timestamp, column_names, row_values) VALUES (?, ?, ?, ?)",
+            (table_name, timestamp, columns_str, values_str)
+        )
+
     def fill_table(self, tbl_name, data, chk_exist="no"):
+        if chk_exist == 'yes':
+            conn_dpl = sqlite3.connect("db_dpl.db")
+            cursor_dpl = conn_dpl.cursor()
+            cursor_dpl.execute("""
+                CREATE TABLE IF NOT EXISTS duplicate_log (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    table_name TEXT,
+                    timestamp TEXT,
+                    column_names  TEXT,
+                    row_values  TEXT
+                );
+            """)
+
         conn = sqlite3.connect(self.db)
         cursor = conn.cursor()
 
@@ -62,40 +87,33 @@ class SqliteDB:
         placeholders = ", ".join(["?" for _ in columns])
 
         insert_sql = f"INSERT INTO {tbl_name} ({', '.join(columns)}) VALUES ({placeholders})"
-        check_sql = self.build_check_exists_query(tbl_name, columns)
-
-        print(f'insert_sql:<{insert_sql}>')
-        print(f'check_sql:<{check_sql}>')
-
-        # for row in data:
-        #     sql, values = self.build_count_query("AOI_data", row)
-        #     print(f'check_sql:<{sql}> values:<{values}> ')
-        #     cursor.execute(sql, values)
-        #     count = cursor.fetchone()[0]
-        #     print(f"Count: {count}")
+        duplicate_check_fields = ["aoi_name", "aoi_test_time", "aoi_mkt", "po_number"]
+        check_sql = self.build_check_exists_query(tbl_name, duplicate_check_fields)
 
         for row in data:
             values = tuple(row[col] for col in columns)
 
+            key_values = ()
             if chk_exist=='yes':
-                cursor.execute(check_sql, values)
+                key_values = tuple(row[col] for col in duplicate_check_fields)
+                cursor.execute(check_sql, key_values)
                 count = cursor.fetchone()[0]
             else:
                 count = 0
-            #print(count, values)
 
             if count == 0:
                 cursor.execute(insert_sql, values)
-            elif count == 1:
-                print(f"The row already exists: {values}")
             else:
-                print(f"Error: there are {count} duplications for {values}!")
-            # values = tuple(row[col] for col in columns)
-            # cursor.execute(insert_sql, values)
+                self.log_duplicate(cursor_dpl, tbl_name, duplicate_check_fields, key_values)
 
         # Save changes and close connection
         conn.commit()
         conn.close()
+
+        if chk_exist=='yes':
+            conn_dpl.commit()
+            conn_dpl.close()
+
 
     def get_last_date(self, tbl_name, tst_field):
         conn = sqlite3.connect(self.db)

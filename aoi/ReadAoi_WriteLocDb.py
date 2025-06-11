@@ -94,7 +94,7 @@ if __name__ == '__main__':
     aoi = Aoi()
     aoi.print_rtext = True
     #df = []
-    days_ago = 180; # config['days_ago']
+    days_ago = 21; # config['days_ago']
 
     for st, en in ('01/01/2025', '28/02/2025'), ('01/03/2025', '31/05/2025'):
         pass
@@ -104,11 +104,13 @@ if __name__ == '__main__':
                    ('01/03/2025', '31/03/2025'), ('01/04/2025', '30/04/2025'),
                    ('01/05/2025', '31/05/2025')):
         pass
-    for st, en in ('29/05/2025', '29/05/2025'),:
+    for st, en in (str((date.today() - timedelta(days=days_ago)).strftime("%d/%m/%Y")), date.today().strftime('%d/%m/%Y')),:
         date_from_string = st #'09/04/2025' # str((date.today() - timedelta(days=days_ago)).strftime("%d/%m/%Y"), ) #'08/04/2024'  #
         today_date_string = en #'01/06/2025' # date.today().strftime('%d/%m/%Y') #'09/04/2024' #
 
         df = aoi.get_data_from_aoi(date_from_string, today_date_string)
+        # print(len(df))
+        # exit(0)
         if len(df) == 0:
             print(f"No AOI data from {date_from_string} up to {today_date_string}")
             logger.info(f'No new AOI data between {date_from_string} and {today_date_string}')
